@@ -16,12 +16,9 @@
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
-  <!-- Tone.js for UI & Game Audio -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-
   <!-- Firebase App & Realtime Database Compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" crossorigin="anonymous"></script>
 
   <script>
     tailwind.config = {
@@ -1097,11 +1094,12 @@
   <!-- ========================================================= -->
   <script>
     // =========================================================================
-    // 1. EXACT FIREBASE CONFIGURATION PROVIDED BY USER
+    // 1. EXACT FIREBASE CONFIGURATION PROVIDED BY USER + REALTIME DATABASE URL
     // =========================================================================
     const firebaseConfig = {
       apiKey: "AIzaSyC-PHhppkYRQpCoVencJVCTM_-S6Nxgxgc",
       authDomain: "amirahmed-85681.firebaseapp.com",
+      databaseURL: "https://amirahmed-85681-default-rtdb.firebaseio.com",
       projectId: "amirahmed-85681",
       storageBucket: "amirahmed-85681.firebasestorage.app",
       messagingSenderId: "276133510041",
@@ -1114,16 +1112,18 @@
     let isApplyingRemoteUpdate = false;
 
     try {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+      if (typeof firebase !== 'undefined') {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        firebaseDb = firebase.database();
       }
-      firebaseDb = firebase.database();
     } catch (err) {
       console.warn("Firebase init fallback:", err);
     }
 
     // =========================================================================
-    // 2. SOUND EFFECTS ENGINE (WEB AUDIO + TONE.JS)
+    // 2. SOUND EFFECTS ENGINE (WEB AUDIO)
     // =========================================================================
     let soundMuted = false;
     let audioCtx = null;
@@ -1212,6 +1212,26 @@
     // =========================================================================
     const STORAGE_KEY = 'alhoot_platform_state_v1';
 
+    function safeGetStorage(store, key) {
+      try {
+        return store.getItem(key);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function safeSetStorage(store, key, val) {
+      try {
+        store.setItem(key, val);
+      } catch (e) {}
+    }
+
+    function safeRemoveStorage(store, key) {
+      try {
+        store.removeItem(key);
+      } catch (e) {}
+    }
+
     const THEME_PRESETS = [
       { id: 'ocean', name: 'نسيم المحيط', primary: '#0284c7', dark: '#0369a1', rgb: '2, 132, 199' },
       { id: 'sunset', name: 'توهج الغروب', primary: '#ea580c', dark: '#c2410c', rgb: '234, 88, 12' },
@@ -1222,6 +1242,7 @@
     ];
 
     const DEFAULT_STATE = {
+      _initialized: false,
       settings: {
         platformName: 'منصة الحوت',
         subtitle: 'معد المادة بجريدة الجمهورية',
@@ -1270,10 +1291,17 @@
           title: 'الفصل الأول: الحملة الفرنسية على مصر والشام',
           description: 'شرح تفصيلي لأحوال المجتمع المصري قبل الحملة ومقاومة المصريين ونتائج الحملة العلمية.',
           price: 150,
+          oldPrice: 200,
+          badge: 'شرح منهج',
+          durationLabel: 'مفتوح طوال العام',
+          published: true,
+          featured: true,
+          coverImage: '',
+          promoUrl: '',
           pdfUrl: 'https://drive.google.com',
           lessons: [
-            { id: 'l1', title: 'المحاضرة 1: ظروف مجيء الحملة الفرنسية', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', isFree: true },
-            { id: 'l2', title: 'المحاضرة 2: مقاومة أهالي الصعيد وثورة القاهرة', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', isFree: false }
+            { id: 'l1', title: 'المحاضرة 1: ظروف مجيء الحملة الفرنسية', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', duration: '45 دقيقة', pdfUrl: '', isFree: true },
+            { id: 'l2', title: 'المحاضرة 2: مقاومة أهالي الصعيد وثورة القاهرة', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', duration: '55 دقيقة', pdfUrl: '', isFree: false }
           ]
         },
         {
@@ -1282,9 +1310,16 @@
           title: 'الفصل الثاني: بناء الدولة الحديثة في عهد محمد علي',
           description: 'توطيد سلطة محمد علي، نظام الاحتكار، والنهضة التعليمية والعسكرية.',
           price: 180,
+          oldPrice: 240,
+          badge: 'مراجعة نهائية',
+          durationLabel: 'مفتوح طوال العام',
+          published: true,
+          featured: false,
+          coverImage: '',
+          promoUrl: '',
           pdfUrl: 'https://drive.google.com',
           lessons: [
-            { id: 'l3', title: 'المحاضرة 1: الصراع على السلطة وتولية محمد علي', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', isFree: true }
+            { id: 'l3', title: 'المحاضرة 1: الصراع على السلطة وتولية محمد علي', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', duration: '50 دقيقة', pdfUrl: '', isFree: true }
           ]
         },
         {
@@ -1293,9 +1328,16 @@
           title: 'الوحدة الأولى: مدخل لدراسة حضارة مصر القديمة',
           description: 'عوامل قيام الحضارات ومصادر دراسة التاريخ الفرعوني.',
           price: 100,
+          oldPrice: 0,
+          badge: 'شرح منهج',
+          durationLabel: 'ترم كامل',
+          published: true,
+          featured: false,
+          coverImage: '',
+          promoUrl: '',
           pdfUrl: 'https://drive.google.com',
           lessons: [
-            { id: 'l4', title: 'الدرس الأول: الحضارة والتاريخ', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', isFree: true }
+            { id: 'l4', title: 'الدرس الأول: الحضارة والتاريخ', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', duration: '40 دقيقة', pdfUrl: '', isFree: true }
           ]
         },
         {
@@ -1304,9 +1346,16 @@
           title: 'الوحدة الأولى: ظهور الإسلام وبناء الدولة الإسلامية',
           description: 'أحوال شبه الجزيرة العربية قبل الإسلام ودعائم بناء الدولة في المدينة.',
           price: 120,
+          oldPrice: 0,
+          badge: 'شرح منهج',
+          durationLabel: 'ترم كامل',
+          published: true,
+          featured: false,
+          coverImage: '',
+          promoUrl: '',
           pdfUrl: 'https://drive.google.com',
           lessons: [
-            { id: 'l5', title: 'الدرس الأول: حضارات شبه الجزيرة العربية', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', isFree: true }
+            { id: 'l5', title: 'الدرس الأول: حضارات شبه الجزيرة العربية', videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ', duration: '35 دقيقة', pdfUrl: '', isFree: true }
           ]
         }
       ],
@@ -1359,19 +1408,57 @@
     };
 
     let appState = loadLocalState();
-    let currentUser = JSON.parse(sessionStorage.getItem('alhoot_current_user') || 'null');
+    let currentUser = JSON.parse(safeGetStorage(sessionStorage, 'alhoot_current_user') || 'null');
     let currentAdminSection = 'overview';
     let activeCourseFilter = 'all';
 
+    function normalizeAppState(state, hasSavedData = false) {
+      if (hasSavedData || state._initialized) {
+        state._initialized = true;
+        if (!Array.isArray(state.courses)) state.courses = [];
+        if (!Array.isArray(state.codes)) state.codes = [];
+        if (!Array.isArray(state.students)) state.students = [];
+        if (!Array.isArray(state.certificates)) state.certificates = [];
+      } else {
+        if (!Array.isArray(state.courses)) state.courses = JSON.parse(JSON.stringify(DEFAULT_STATE.courses));
+        if (!Array.isArray(state.codes)) state.codes = JSON.parse(JSON.stringify(DEFAULT_STATE.codes));
+        if (!Array.isArray(state.students)) state.students = JSON.parse(JSON.stringify(DEFAULT_STATE.students));
+        if (!Array.isArray(state.certificates)) state.certificates = JSON.parse(JSON.stringify(DEFAULT_STATE.certificates));
+      }
+      if (!Array.isArray(state.grades) || state.grades.length === 0) {
+        state.grades = JSON.parse(JSON.stringify(DEFAULT_STATE.grades));
+      }
+      if (!Array.isArray(state.schedules)) state.schedules = [];
+
+      state.courses = state.courses.map(c => ({
+        ...c,
+        lessons: Array.isArray(c.lessons) ? c.lessons : [],
+        published: c.published !== false,
+        featured: !!c.featured,
+        badge: c.badge || 'شرح منهج',
+        durationLabel: c.durationLabel || 'مفتوح طوال العام',
+        oldPrice: Number(c.oldPrice || 0),
+        price: Number(c.price || 0)
+      }));
+
+      state.students = state.students.map(st => ({
+        ...st,
+        enrolledCourses: Array.isArray(st.enrolledCourses) ? st.enrolledCourses : []
+      }));
+
+      return state;
+    }
+
     function loadLocalState() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = safeGetStorage(localStorage, STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          return deepMerge(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
+          const merged = deepMerge(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
+          return normalizeAppState(merged, true);
         }
       } catch (e) {}
-      return JSON.parse(JSON.stringify(DEFAULT_STATE));
+      return normalizeAppState(JSON.parse(JSON.stringify(DEFAULT_STATE)), false);
     }
 
     function deepMerge(target, source) {
@@ -1386,11 +1473,9 @@
     }
 
     function saveState(syncToCloud = true) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-      } catch (e) {
-        console.warn('LocalStorage quota warning:', e);
-      }
+      appState._initialized = true;
+      normalizeAppState(appState, true);
+      safeSetStorage(localStorage, STORAGE_KEY, JSON.stringify(appState));
 
       if (syncToCloud && firebaseDb && !isApplyingRemoteUpdate) {
         firebaseDb.ref('alhoot_platform').set(appState)
@@ -1436,8 +1521,9 @@
         const remoteData = snapshot.val();
         if (remoteData) {
           isApplyingRemoteUpdate = true;
-          appState = deepMerge(JSON.parse(JSON.stringify(DEFAULT_STATE)), remoteData);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+          const merged = deepMerge(JSON.parse(JSON.stringify(DEFAULT_STATE)), remoteData);
+          appState = normalizeAppState(merged, true);
+          safeSetStorage(localStorage, STORAGE_KEY, JSON.stringify(appState));
           applyBrandingAndTheme();
           renderPublicSections();
           if (currentUser && currentUser.role === 'admin') {
@@ -1447,6 +1533,7 @@
           isApplyingRemoteUpdate = false;
         } else {
           // Seed initial data to Firebase if empty
+          appState._initialized = true;
           platformRef.set(appState).then(() => updateCloudBadge(true)).catch(() => updateCloudBadge(false));
         }
       }, (error) => {
@@ -1560,7 +1647,7 @@
     function toggleDarkMode() {
       const html = document.documentElement;
       const isDark = html.classList.toggle('dark');
-      localStorage.setItem('alhoot_dark_mode', isDark ? '1' : '0');
+      safeSetStorage(localStorage, 'alhoot_dark_mode', isDark ? '1' : '0');
       updateDarkIcons(isDark);
     }
 
@@ -1688,7 +1775,7 @@
           name: appState.adminProfile.name,
           phone: appState.adminProfile.phone
         };
-        sessionStorage.setItem('alhoot_current_user', JSON.stringify(currentUser));
+        safeSetStorage(sessionStorage, 'alhoot_current_user', JSON.stringify(currentUser));
         closeModal('authModal');
         updateAuthUI();
         switchToAdminDashboard();
@@ -1706,7 +1793,7 @@
           phone: student.phone,
           grade: student.grade
         };
-        sessionStorage.setItem('alhoot_current_user', JSON.stringify(currentUser));
+        safeSetStorage(sessionStorage, 'alhoot_current_user', JSON.stringify(currentUser));
         closeModal('authModal');
         updateAuthUI();
         renderPublicSections();
@@ -1757,7 +1844,7 @@
         phone: newStudent.phone,
         grade: newStudent.grade
       };
-      sessionStorage.setItem('alhoot_current_user', JSON.stringify(currentUser));
+      safeSetStorage(sessionStorage, 'alhoot_current_user', JSON.stringify(currentUser));
 
       closeModal('authModal');
       updateAuthUI();
@@ -1767,7 +1854,7 @@
 
     function logoutUser() {
       currentUser = null;
-      sessionStorage.removeItem('alhoot_current_user');
+      safeRemoveStorage(sessionStorage, 'alhoot_current_user');
       updateAuthUI();
       switchToPublicView();
       renderPublicSections();
@@ -1829,6 +1916,8 @@
 
     function isCourseUnlocked(courseId) {
       if (currentUser && currentUser.role === 'admin') return true;
+      const course = appState.courses.find(c => c.id === courseId);
+      if (course && Number(course.price) === 0) return true;
       if (!currentUser || currentUser.role !== 'student') return false;
       const st = appState.students.find(s => s.id === currentUser.id);
       return st && Array.isArray(st.enrolledCourses) && st.enrolledCourses.includes(courseId);
@@ -1838,7 +1927,7 @@
       // 1. Render 1080x1080 Grades Cards
       const gradesGrid = document.getElementById('gradesGrid');
       gradesGrid.innerHTML = appState.grades.map(g => {
-        const count = appState.courses.filter(c => c.gradeId === g.id).length;
+        const count = appState.courses.filter(c => c.gradeId === g.id && c.published !== false).length;
         return `
           <div onclick="selectGradeAndScroll('${g.id}')" class="cursor-pointer liquid-glass liquid-card-hover rounded-[32px] p-4 group">
             <div class="aspect-square w-full rounded-[24px] overflow-hidden relative mb-4 bg-slate-900">
@@ -1860,11 +1949,15 @@
         `;
       }).join('');
 
-      // 2. Render Courses
+      // 2. Render Published Courses (Featured first)
       const coursesGrid = document.getElementById('coursesGrid');
+      const visibleCourses = appState.courses
+        .filter(c => c.published !== false)
+        .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+
       const filtered = activeCourseFilter === 'all'
-        ? appState.courses
-        : appState.courses.filter(c => c.gradeId === activeCourseFilter);
+        ? visibleCourses
+        : visibleCourses.filter(c => c.gradeId === activeCourseFilter);
 
       if (filtered.length === 0) {
         coursesGrid.innerHTML = `<div class="col-span-full text-center py-12 liquid-glass rounded-3xl font-bold text-slate-500">لا توجد كورسات مضافة في هذا القسم حالياً.</div>`;
@@ -1872,29 +1965,56 @@
       }
 
       coursesGrid.innerHTML = filtered.map(c => {
+        const lessons = Array.isArray(c.lessons) ? c.lessons : [];
         const unlocked = isCourseUnlocked(c.id);
-        const freeLesson = c.lessons.find(l => l.isFree);
+        const freeLesson = lessons.find(l => l.isFree);
+        const isFreeCourse = Number(c.price) === 0;
+        const hasDiscount = Number(c.oldPrice) > Number(c.price) && Number(c.price) > 0;
+
         return `
-          <div class="liquid-glass liquid-card-hover rounded-[28px] p-6 flex flex-col justify-between gap-5">
+          <div class="liquid-glass liquid-card-hover rounded-[28px] overflow-hidden flex flex-col justify-between ${c.featured ? 'ring-2 ring-amber-400/70' : ''}">
             <div>
-              <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="px-3 py-1 rounded-full bg-theme-soft text-theme text-xs font-extrabold">${getGradeLabel(c.gradeId)}</span>
-                ${unlocked
-                  ? `<span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-500 text-xs font-black"><i class="fa-solid fa-unlock ml-1"></i> مفتوح لك</span>`
-                  : `<span class="text-base font-black text-theme">${c.price} ج.م</span>`
-                }
-              </div>
+              ${c.coverImage
+                ? `<div class="relative aspect-video w-full overflow-hidden bg-slate-900">
+                    <img src="${c.coverImage}" alt="${c.title}" class="w-full h-full object-cover" />
+                    <div class="absolute top-3 right-3 flex flex-wrap gap-1.5">
+                      <span class="px-3 py-1 rounded-full bg-slate-950/75 backdrop-blur-md text-white text-[11px] font-extrabold">${getGradeLabel(c.gradeId)}</span>
+                      <span class="px-2.5 py-1 rounded-full btn-primary text-[11px] font-extrabold">${c.badge || 'شرح منهج'}</span>
+                    </div>
+                    ${c.featured ? `<span class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 text-[11px] font-black shadow">⭐ الأكثر طلباً</span>` : ''}
+                   </div>`
+                : `<div class="p-6 pb-0 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="px-3 py-1 rounded-full bg-theme-soft text-theme text-xs font-extrabold">${getGradeLabel(c.gradeId)}</span>
+                      <span class="px-2.5 py-1 rounded-full bg-slate-200/80 dark:bg-slate-800 text-[11px] font-extrabold">${c.badge || 'شرح منهج'}</span>
+                    </div>
+                    ${c.featured ? `<span class="px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-500 text-[11px] font-black">⭐ مميز</span>` : ''}
+                   </div>`
+              }
 
-              <h3 class="text-lg font-black leading-snug mb-2">${c.title}</h3>
-              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">${c.description}</p>
+              <div class="p-6 pt-4">
+                <div class="flex items-center justify-between gap-2 mb-2.5">
+                  <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400"><i class="fa-regular fa-clock ml-1 text-theme"></i>${c.durationLabel || 'مفتوح طوال العام'}</span>
+                  ${unlocked
+                    ? `<span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-500 text-xs font-black"><i class="fa-solid fa-unlock ml-1"></i> ${isFreeCourse ? 'مجاني بالكامل' : 'مفتوح لك'}</span>`
+                    : `<div class="flex items-center gap-1.5">
+                        ${hasDiscount ? `<span class="text-xs line-through text-slate-400 font-bold">${c.oldPrice} ج.م</span>` : ''}
+                        <span class="text-base font-black text-theme">${c.price} ج.م</span>
+                       </div>`
+                  }
+                </div>
 
-              <div class="flex items-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400">
-                <span><i class="fa-solid fa-circle-play text-theme ml-1"></i> ${c.lessons.length} محاضرات</span>
-                <span><i class="fa-solid fa-file-pdf text-rose-500 ml-1"></i> ملزمة PDF</span>
+                <h3 class="text-lg font-black leading-snug mb-2">${c.title}</h3>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">${c.description}</p>
+
+                <div class="flex items-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400">
+                  <span><i class="fa-solid fa-circle-play text-theme ml-1"></i> ${lessons.length} محاضرات</span>
+                  <span><i class="fa-solid fa-file-pdf text-rose-500 ml-1"></i> ملزمة PDF</span>
+                </div>
               </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-200/60 dark:border-slate-800 flex items-center gap-2">
+            <div class="px-6 pb-6 pt-3 border-t border-slate-200/60 dark:border-slate-800 flex items-center gap-2">
               ${unlocked
                 ? `<button onclick="openCoursePlayer('${c.id}')" class="btn-primary w-full py-3 rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2">
                     <i class="fa-solid fa-play"></i> دخول المحاضرات الآن
@@ -2132,7 +2252,7 @@
       // Render Lessons List
       const unlocked = isCourseUnlocked(activePlayerCourse.id);
       const listEl = document.getElementById('playerLessonsList');
-      listEl.innerHTML = activePlayerCourse.lessons.map((l, idx) => {
+      listEl.innerHTML = (activePlayerCourse.lessons || []).map((l, idx) => {
         const canWatch = unlocked || l.isFree;
         const isCurrent = l.id === lesson.id;
         return `
@@ -2140,11 +2260,18 @@
             onclick="${canWatch ? `loadLessonIntoPlayer(activePlayerCourse.lessons[${idx}])` : `openRedeemModal()`}"
             class="w-full text-right p-3 rounded-xl text-xs font-extrabold flex items-center justify-between gap-2 transition ${isCurrent ? 'btn-primary' : 'liquid-glass hover:border-theme'}"
           >
-            <span>${idx + 1}. ${l.title}</span>
+            <div>
+              <span>${idx + 1}. ${l.title}</span>
+              ${l.duration ? `<span class="mr-2 text-[10px] opacity-80">(${l.duration})</span>` : ''}
+            </div>
             <span>${canWatch ? (l.isFree && !unlocked ? 'مجاني' : '<i class="fa-solid fa-play"></i>') : '<i class="fa-solid fa-lock text-amber-400"></i>'}</span>
           </button>
         `;
       }).join('');
+
+      if (lesson.pdfUrl) {
+        document.getElementById('playerPdfLink').href = lesson.pdfUrl;
+      }
 
       startDynamicWatermark();
     }
@@ -2900,61 +3027,9 @@
         `;
       }
 
-      // 4. COURSES MANAGEMENT
+      // 4. ADVANCED COURSES MANAGEMENT STUDIO
       else if (id === 'courses') {
-        main.innerHTML = `
-          <div class="space-y-6">
-            <div class="liquid-glass rounded-3xl p-6">
-              <h3 class="text-base font-black mb-4">إضافة كورس جديد</h3>
-              <form onsubmit="adminAddCourse(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input id="newCourseTitle" type="text" required placeholder="عنوان الكورس (مثال: مراجعة الفصل الثالث)" class="px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
-                <select id="newCourseGrade" class="px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold">
-                  ${appState.grades.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
-                </select>
-                <input id="newCoursePrice" type="number" required placeholder="السعر بالجنيه (مثال: 150)" class="px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
-                <input id="newCoursePdf" type="url" placeholder="رابط ملزمة PDF (Google Drive)" class="px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
-                <textarea id="newCourseDesc" required placeholder="وصف الكورس..." class="md:col-span-2 px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold"></textarea>
-                <button type="submit" class="md:col-span-2 btn-primary py-3 rounded-2xl text-xs font-extrabold">حفظ الكورس ومزامنته سحابياً</button>
-              </form>
-            </div>
-
-            <div class="space-y-4">
-              ${appState.courses.map((c, idx) => `
-                <div class="liquid-glass rounded-3xl p-5 space-y-4">
-                  <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <span class="px-3 py-1 rounded-full bg-theme-soft text-theme text-xs font-extrabold">${getGradeLabel(c.gradeId)}</span>
-                      <h4 class="text-base font-black mt-1">${c.title} — <span class="text-theme">${c.price} ج.م</span></h4>
-                    </div>
-                    <button onclick="adminDeleteCourse(${idx})" class="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-500 hover:bg-rose-500 hover:text-white text-xs font-extrabold">حذف الكورس</button>
-                  </div>
-
-                  <!-- Lessons inside course -->
-                  <div class="space-y-2 border-t border-slate-200/60 dark:border-slate-800 pt-3">
-                    <div class="text-xs font-extrabold text-slate-500">المحاضرات المرفوعة (${c.lessons.length}):</div>
-                    ${c.lessons.map((l, lIdx) => `
-                      <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/60 dark:bg-slate-900/60 text-xs">
-                        <span class="font-bold">${l.title} ${l.isFree ? '<span class="text-emerald-500">(مجانية)</span>' : ''}</span>
-                        <button onclick="adminDeleteLesson(${idx}, ${lIdx})" class="text-rose-500 font-bold">حذف</button>
-                      </div>
-                    `).join('')}
-
-                    <form onsubmit="adminAddLesson(event, ${idx})" class="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2">
-                      <input name="lTitle" type="text" required placeholder="اسم المحاضرة" class="px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
-                      <input name="lUrl" type="url" required placeholder="رابط YouTube غير مدرج أو Google Drive" class="sm:col-span-2 px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
-                      <div class="flex items-center gap-2">
-                        <label class="flex items-center gap-1 text-xs font-bold cursor-pointer">
-                          <input type="checkbox" name="lFree" /> مجانية
-                        </label>
-                        <button type="submit" class="btn-primary flex-1 py-2 px-3 rounded-xl text-xs font-extrabold">+ إضافة</button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
+        renderCoursesAdminStudio(main);
       }
 
       // 5. GRADES & 1080x1080 IMAGES
@@ -3454,170 +3529,926 @@
     }
 
     // =========================================================================
-    // 12. INTERACTIVE WHITEBOARD & SCREEN RECORDER
+    // ADVANCED COURSES MANAGEMENT STUDIO & HANDLERS
     // =========================================================================
-    let wbTool = 'pen', wbDrawing = false, wbStartX = 0, wbStartY = 0, wbSnapshot = null;
-    let mediaRecorder = null, recordedChunks = [];
+    let adminCourseSearch = '';
+    let adminCourseGradeFilter = 'all';
+    let adminCourseStatusFilter = 'all';
+    let adminCourseSort = 'newest';
+    let newCourseCoverBase64 = '';
+    let editingCourseCoverBase64 = '';
+
+    function renderCoursesAdminStudio(main) {
+      const totalCourses = appState.courses.length;
+      const publishedCount = appState.courses.filter(c => c.published !== false).length;
+      const totalLessons = appState.courses.reduce((sum, c) => sum + (Array.isArray(c.lessons) ? c.lessons.length : 0), 0);
+      const freeCoursesCount = appState.courses.filter(c => Number(c.price) === 0).length;
+
+      let filteredCourses = [...appState.courses];
+      if (adminCourseSearch.trim()) {
+        const q = adminCourseSearch.trim().toLowerCase();
+        filteredCourses = filteredCourses.filter(c =>
+          c.title.toLowerCase().includes(q) ||
+          (c.description || '').toLowerCase().includes(q) ||
+          (c.badge || '').toLowerCase().includes(q)
+        );
+      }
+      if (adminCourseGradeFilter !== 'all') {
+        filteredCourses = filteredCourses.filter(c => c.gradeId === adminCourseGradeFilter);
+      }
+      if (adminCourseStatusFilter === 'published') {
+        filteredCourses = filteredCourses.filter(c => c.published !== false);
+      } else if (adminCourseStatusFilter === 'draft') {
+        filteredCourses = filteredCourses.filter(c => c.published === false);
+      } else if (adminCourseStatusFilter === 'featured') {
+        filteredCourses = filteredCourses.filter(c => !!c.featured);
+      }
+
+      if (adminCourseSort === 'price_high') {
+        filteredCourses.sort((a, b) => Number(b.price) - Number(a.price));
+      } else if (adminCourseSort === 'price_low') {
+        filteredCourses.sort((a, b) => Number(a.price) - Number(b.price));
+      } else if (adminCourseSort === 'lessons') {
+        filteredCourses.sort((a, b) => (b.lessons?.length || 0) - (a.lessons?.length || 0));
+      }
+
+      main.innerHTML = `
+        <div class="space-y-6">
+          <!-- KPI Stats Bar -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="liquid-glass rounded-3xl p-4 sm:p-5 flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-slate-500">إجمالي الكورسات</div>
+                <div class="text-2xl sm:text-3xl font-black text-theme mt-1">${totalCourses}</div>
+              </div>
+              <div class="w-11 h-11 rounded-2xl bg-theme-soft text-theme flex items-center justify-center text-lg"><i class="fa-solid fa-book-open"></i></div>
+            </div>
+            <div class="liquid-glass rounded-3xl p-4 sm:p-5 flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-slate-500">الكورسات المنشورة</div>
+                <div class="text-2xl sm:text-3xl font-black text-emerald-500 mt-1">${publishedCount}</div>
+              </div>
+              <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-lg"><i class="fa-solid fa-globe"></i></div>
+            </div>
+            <div class="liquid-glass rounded-3xl p-4 sm:p-5 flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-slate-500">إجمالي المحاضرات</div>
+                <div class="text-2xl sm:text-3xl font-black text-purple-500 mt-1">${totalLessons}</div>
+              </div>
+              <div class="w-11 h-11 rounded-2xl bg-purple-500/15 text-purple-500 flex items-center justify-center text-lg"><i class="fa-solid fa-circle-play"></i></div>
+            </div>
+            <div class="liquid-glass rounded-3xl p-4 sm:p-5 flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-slate-500">كورسات مجانية</div>
+                <div class="text-2xl sm:text-3xl font-black text-amber-500 mt-1">${freeCoursesCount}</div>
+              </div>
+              <div class="w-11 h-11 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-lg"><i class="fa-solid fa-gift"></i></div>
+            </div>
+          </div>
+
+          <!-- Add New Course Builder Card -->
+          <div class="liquid-glass rounded-3xl p-5 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl btn-primary flex items-center justify-center text-sm"><i class="fa-solid fa-plus"></i></div>
+                <div>
+                  <h3 class="text-base font-black">إنشاء كورس جديد بمواصفات احترافية</h3>
+                  <p class="text-[11px] text-slate-500">أضف السعر، الخصم، صورة الغلاف، مدة الصلاحية، وحالة النشر</p>
+                </div>
+              </div>
+              <button type="button" onclick="document.getElementById('newCourseFormBody').classList.toggle('hidden')" class="px-3.5 py-2 rounded-xl liquid-glass text-xs font-extrabold">
+                إظهار / إخفاء النموذج
+              </button>
+            </div>
+
+            <form id="newCourseFormBody" onsubmit="adminAddCourse(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="md:col-span-2">
+                <label class="block text-xs font-extrabold mb-1">عنوان الكورس *</label>
+                <input id="newCourseTitle" type="text" required placeholder="مثال: معسكر المراجعة النهائية - الفصل الثالث" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-extrabold mb-1">الصف الدراسي *</label>
+                <select id="newCourseGrade" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                  ${appState.grades.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-extrabold mb-1">تصنيف الكورس (الشارة)</label>
+                <select id="newCourseBadge" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                  <option value="شرح منهج">شرح منهج</option>
+                  <option value="مراجعة نهائية">مراجعة نهائية</option>
+                  <option value="ورشة حل">ورشة حل وتدريبات</option>
+                  <option value="معسكر إنقاذ">معسكر إنقاذ</option>
+                  <option value="مراجعة جريدة الجمهورية">مراجعة جريدة الجمهورية</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-extrabold mb-1">السعر الحالي بالجنيه (0 = مجاني) *</label>
+                <input id="newCoursePrice" type="number" min="0" value="150" required placeholder="150" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-extrabold mb-1">السعر قبل الخصم (اختياري)</label>
+                <input id="newCourseOldPrice" type="number" min="0" value="0" placeholder="مثال: 220" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-extrabold mb-1">مدة صلاحية الكورس</label>
+                <select id="newCourseDuration" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                  <option value="مفتوح طوال العام">مفتوح طوال العام</option>
+                  <option value="30 يوم من التفعيل">30 يوم من التفعيل</option>
+                  <option value="90 يوم من التفعيل">90 يوم من التفعيل</option>
+                  <option value="ترم دراسي كامل">ترم دراسي كامل</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-extrabold mb-1">رابط ملزمة PDF الرئيسية</label>
+                <input id="newCoursePdf" type="url" placeholder="https://drive.google.com/..." class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-extrabold mb-1">صورة غلاف الكورس (اختياري)</label>
+                <input type="file" accept="image/*" onchange="handleNewCourseCoverUpload(event)" class="w-full text-xs file:ml-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:btn-primary file:text-xs file:font-extrabold" />
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-xs font-extrabold mb-1">وصف ومحتوى الكورس *</label>
+                <textarea id="newCourseDesc" rows="2" required placeholder="اكتب تفاصيل ما سيتعلمه الطالب في هذا الكورس..." class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold"></textarea>
+              </div>
+
+              <div class="flex flex-col justify-center gap-2 p-3 rounded-2xl bg-white/50 dark:bg-slate-900/50">
+                <label class="flex items-center gap-2 text-xs font-extrabold cursor-pointer">
+                  <input id="newCoursePublished" type="checkbox" checked class="accent-sky-600" />
+                  <span>نشر الكورس للطلاب فوراً</span>
+                </label>
+                <label class="flex items-center gap-2 text-xs font-extrabold cursor-pointer text-amber-600 dark:text-amber-400">
+                  <input id="newCourseFeatured" type="checkbox" class="accent-amber-500" />
+                  <span>تمييز الكورس (⭐ الأكثر طلباً)</span>
+                </label>
+              </div>
+
+              <button type="submit" class="md:col-span-3 btn-primary py-3 rounded-2xl text-xs sm:text-sm font-extrabold">
+                <i class="fa-solid fa-cloud-arrow-up ml-1.5"></i> حفظ الكورس ومزامنته سحابياً الآن
+              </button>
+            </form>
+          </div>
+
+          <!-- Search, Filter & Sort Toolbar -->
+          <div class="liquid-glass rounded-3xl p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="relative">
+              <input
+                type="text"
+                value="${adminCourseSearch}"
+                oninput="adminCourseSearch = this.value; renderCoursesAdminStudio(document.getElementById('adminMainContent'))"
+                placeholder="ابحث باسم الكورس أو الوصف..."
+                class="w-full px-4 py-2.5 pr-9 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold"
+              />
+              <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            </div>
+
+            <select onchange="adminCourseGradeFilter = this.value; renderCoursesAdminStudio(document.getElementById('adminMainContent'))" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+              <option value="all" ${adminCourseGradeFilter === 'all' ? 'selected' : ''}>كل الصفوف الدراسية</option>
+              ${appState.grades.map(g => `<option value="${g.id}" ${adminCourseGradeFilter === g.id ? 'selected' : ''}>${g.name}</option>`).join('')}
+            </select>
+
+            <select onchange="adminCourseStatusFilter = this.value; renderCoursesAdminStudio(document.getElementById('adminMainContent'))" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+              <option value="all" ${adminCourseStatusFilter === 'all' ? 'selected' : ''}>كل الحالات</option>
+              <option value="published" ${adminCourseStatusFilter === 'published' ? 'selected' : ''}>المنشورة فقط</option>
+              <option value="draft" ${adminCourseStatusFilter === 'draft' ? 'selected' : ''}>المسودات المخفية</option>
+              <option value="featured" ${adminCourseStatusFilter === 'featured' ? 'selected' : ''}>الكورسات المميزة ⭐</option>
+            </select>
+
+            <select onchange="adminCourseSort = this.value; renderCoursesAdminStudio(document.getElementById('adminMainContent'))" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+              <option value="newest" ${adminCourseSort === 'newest' ? 'selected' : ''}>الترتيب: الأحدث أولاً</option>
+              <option value="price_high" ${adminCourseSort === 'price_high' ? 'selected' : ''}>السعر: من الأعلى للأقل</option>
+              <option value="price_low" ${adminCourseSort === 'price_low' ? 'selected' : ''}>السعر: من الأقل للأعلى</option>
+              <option value="lessons" ${adminCourseSort === 'lessons' ? 'selected' : ''}>الأكثر محاضرات</option>
+            </select>
+          </div>
+
+          <!-- Courses List -->
+          <div class="space-y-4">
+            ${filteredCourses.length === 0
+              ? `<div class="liquid-glass rounded-3xl p-10 text-center text-sm font-extrabold text-slate-500">لا توجد كورسات مطابقة لخيارات البحث الحالية.</div>`
+              : filteredCourses.map(c => {
+                const lessons = Array.isArray(c.lessons) ? c.lessons : [];
+                const enrolledStudentsCount = appState.students.filter(st => (st.enrolledCourses || []).includes(c.id)).length;
+                return `
+                  <div class="liquid-glass rounded-3xl p-5 space-y-4 ${c.published === false ? 'opacity-80 border-dashed border-amber-500/50' : ''}">
+                    <!-- Top Header Row -->
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      <div class="flex items-start gap-3.5">
+                        ${c.coverImage
+                          ? `<img src="${c.coverImage}" class="w-20 h-20 rounded-2xl object-cover shrink-0 border border-theme" />`
+                          : `<div class="w-16 h-16 rounded-2xl bg-theme-soft text-theme flex items-center justify-center text-2xl shrink-0"><i class="fa-solid fa-book-open"></i></div>`
+                        }
+                        <div>
+                          <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                            <span class="px-2.5 py-0.5 rounded-full bg-theme-soft text-theme text-[11px] font-extrabold">${getGradeLabel(c.gradeId)}</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-slate-200/80 dark:bg-slate-800 text-[11px] font-extrabold">${c.badge || 'شرح منهج'}</span>
+                            ${c.published !== false
+                              ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[11px] font-extrabold">● منشور</span>`
+                              : `<span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 text-[11px] font-extrabold">● مخفي (مسودة)</span>`
+                            }
+                            ${c.featured ? `<span class="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-500 text-[11px] font-black">⭐ مميز</span>` : ''}
+                          </div>
+                          <h4 class="text-base sm:text-lg font-black">
+                            ${c.title} —
+                            <span class="text-theme">${Number(c.price) === 0 ? 'مجاني' : c.price + ' ج.م'}</span>
+                            ${Number(c.oldPrice) > Number(c.price) ? `<span class="text-xs line-through text-slate-400 mr-1">${c.oldPrice} ج.م</span>` : ''}
+                          </h4>
+                          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">${c.description}</p>
+                          <div class="flex flex-wrap items-center gap-3 text-[11px] font-bold text-slate-500 mt-1.5">
+                            <span><i class="fa-solid fa-users text-theme ml-1"></i> ${enrolledStudentsCount} طالب مشترك</span>
+                            <span><i class="fa-regular fa-clock text-theme ml-1"></i> ${c.durationLabel || 'مفتوح طوال العام'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Action Buttons Toolbar -->
+                      <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="openEditCourseModal('${c.id}')" class="px-3 py-2 rounded-xl btn-primary text-xs font-extrabold flex items-center gap-1">
+                          <i class="fa-solid fa-pen-to-square"></i> تعديل
+                        </button>
+                        <button type="button" onclick="adminToggleCoursePublish('${c.id}')" class="px-3 py-2 rounded-xl liquid-glass text-xs font-extrabold hover:border-theme">
+                          <i class="fa-solid ${c.published !== false ? 'fa-eye-slash text-amber-500' : 'fa-eye text-emerald-500'} ml-1"></i>
+                          ${c.published !== false ? 'إخفاء' : 'نشر'}
+                        </button>
+                        <button type="button" onclick="adminToggleCourseFeatured('${c.id}')" class="px-3 py-2 rounded-xl liquid-glass text-xs font-extrabold hover:border-amber-400">
+                          <i class="fa-solid fa-star ${c.featured ? 'text-amber-400' : 'text-slate-400'} ml-1"></i> تمييز
+                        </button>
+                        <button type="button" onclick="adminDuplicateCourse('${c.id}')" class="px-3 py-2 rounded-xl liquid-glass text-xs font-extrabold hover:border-theme">
+                          <i class="fa-solid fa-copy text-theme ml-1"></i> نسخ
+                        </button>
+                        <button type="button" onclick="adminJumpToCourseCodes('${c.id}')" class="px-3 py-2 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-300 text-xs font-extrabold">
+                          <i class="fa-solid fa-ticket ml-1"></i> أكواد
+                        </button>
+                        <button type="button" onclick="adminDeleteCourse('${c.id}')" class="px-3.5 py-2 rounded-xl bg-rose-500/15 text-rose-500 hover:bg-rose-500 hover:text-white text-xs font-extrabold transition flex items-center gap-1">
+                          <i class="fa-solid fa-trash-can"></i> حذف
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Direct Student Enrollment by Phone -->
+                    <div class="p-3 rounded-2xl bg-theme-soft/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+                      <span class="text-xs font-extrabold text-theme"><i class="fa-solid fa-user-plus ml-1"></i> تفعيل الكورس مباشرة لطالب برقم هاتفه:</span>
+                      <div class="flex items-center gap-2">
+                        <input id="enrollPhone_${c.id}" type="tel" placeholder="أدخل رقم هاتف الطالب (01xxxxxxxxx)" class="px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 text-xs font-bold flex-1 sm:w-56" />
+                        <button type="button" onclick="adminEnrollStudentByPhone('${c.id}')" class="btn-primary px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap">تفعيل فوري</button>
+                      </div>
+                    </div>
+
+                    <!-- Lessons Management Inside Course -->
+                    <div class="space-y-2.5 border-t border-slate-200/60 dark:border-slate-800 pt-3">
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-600 dark:text-slate-300"><i class="fa-solid fa-list-ol text-theme ml-1"></i> محاضرات ودروس الكورس (${lessons.length}):</span>
+                      </div>
+
+                      ${lessons.length === 0
+                        ? `<div class="text-xs text-slate-400 py-2">لا توجد محاضرات بعد — أضف أول محاضرة من النموذج أدناه.</div>`
+                        : lessons.map((l, lIdx) => `
+                          <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800 text-xs">
+                            <div class="flex items-center gap-2">
+                              <span class="w-6 h-6 rounded-lg bg-theme-soft text-theme font-black flex items-center justify-center text-[11px]">${lIdx + 1}</span>
+                              <div>
+                                <span class="font-extrabold">${l.title}</span>
+                                ${l.duration ? `<span class="mr-2 text-[11px] text-slate-500">(${l.duration})</span>` : ''}
+                                ${l.isFree ? '<span class="mr-2 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 text-[10px] font-black">معاينة مجانية</span>' : ''}
+                              </div>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                              <button type="button" onclick="openCoursePlayer('${c.id}', '${l.id}')" title="معاينة الفيديو" class="px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 font-bold"><i class="fa-solid fa-play"></i></button>
+                              <button type="button" onclick="adminMoveLesson('${c.id}', ${lIdx}, -1)" title="تحريك لأعلى" class="px-2 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800 font-bold" ${lIdx === 0 ? 'disabled' : ''}>⬆️</button>
+                              <button type="button" onclick="adminMoveLesson('${c.id}', ${lIdx}, 1)" title="تحريك لأسفل" class="px-2 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-800 font-bold" ${lIdx === lessons.length - 1 ? 'disabled' : ''}>⬇️</button>
+                              <button type="button" onclick="adminDeleteLesson('${c.id}', '${l.id}')" class="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-500 hover:bg-rose-500 hover:text-white font-bold">حذف</button>
+                            </div>
+                          </div>
+                        `).join('')
+                      }
+
+                      <!-- Add Lesson Form -->
+                      <form onsubmit="adminAddLesson(event, '${c.id}')" class="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-2">
+                        <input name="lTitle" type="text" required placeholder="عنوان المحاضرة الجديدة" class="sm:col-span-4 px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                        <input name="lUrl" type="url" required placeholder="رابط YouTube غير مدرج أو Google Drive" class="sm:col-span-4 px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                        <input name="lDuration" type="text" placeholder="المدة (45 دقيقة)" class="sm:col-span-2 px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                        <div class="sm:col-span-2 flex items-center gap-2">
+                          <label class="flex items-center gap-1 text-[11px] font-extrabold cursor-pointer whitespace-nowrap">
+                            <input type="checkbox" name="lFree" /> مجاني
+                          </label>
+                          <button type="submit" class="btn-primary flex-1 py-2 px-2.5 rounded-xl text-xs font-extrabold">+ إضافة</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                `;
+              }).join('')
+            }
+          </div>
+        </div>
+
+        <!-- Edit Course Modal -->
+        <div id="editCourseModal" class="fixed inset-0 z-[96] hidden items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 overflow-y-auto">
+          <div class="liquid-glass rounded-[32px] max-w-2xl w-full p-6 sm:p-7 relative my-auto">
+            <div class="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800 pb-3 mb-4">
+              <h3 class="text-lg font-black">تعديل بيانات الكورس</h3>
+              <button type="button" onclick="closeModal('editCourseModal')" class="w-9 h-9 rounded-full bg-slate-200/70 dark:bg-slate-800 flex items-center justify-center hover:bg-rose-500 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <form onsubmit="submitEditCourse(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <input type="hidden" id="editCourseId" />
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-extrabold mb-1">عنوان الكورس</label>
+                <input id="editCourseTitle" type="text" required class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+              <div>
+                <label class="block text-xs font-extrabold mb-1">الصف الدراسي</label>
+                <select id="editCourseGrade" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                  ${appState.grades.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-extrabold mb-1">تصنيف الكورس</label>
+                <select id="editCourseBadge" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                  <option value="شرح منهج">شرح منهج</option>
+                  <option value="مراجعة نهائية">مراجعة نهائية</option>
+                  <option value="ورشة حل">ورشة حل وتدريبات</option>
+                  <option value="معسكر إنقاذ">معسكر إنقاذ</option>
+                  <option value="مراجعة جريدة الجمهورية">مراجعة جريدة الجمهورية</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-extrabold mb-1">السعر الحالي (ج.م)</label>
+                <input id="editCoursePrice" type="number" min="0" required class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+              <div>
+                <label class="block text-xs font-extrabold mb-1">السعر قبل الخصم</label>
+                <input id="editCourseOldPrice" type="number" min="0" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+              <div>
+                <label class="block text-xs font-extrabold mb-1">مدة الصلاحية</label>
+                <input id="editCourseDuration" type="text" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+              <div>
+                <label class="block text-xs font-extrabold mb-1">رابط ملزمة PDF</label>
+                <input id="editCoursePdf" type="url" class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-extrabold mb-1">تحديث صورة الغلاف (اختياري)</label>
+                <input type="file" accept="image/*" onchange="handleEditCourseCoverUpload(event)" class="w-full text-xs" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-extrabold mb-1">وصف الكورس</label>
+                <textarea id="editCourseDesc" rows="2" required class="w-full px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-xs font-bold"></textarea>
+              </div>
+              <button type="submit" class="sm:col-span-2 btn-primary py-3 rounded-2xl text-xs font-extrabold">حفظ التعديلات ومزامنتها</button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleNewCourseCoverUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      compressImageFile(file, 900, (dataUrl) => {
+        newCourseCoverBase64 = dataUrl;
+        showToast('تم تجهيز صورة غلاف الكورس!', 'success');
+      });
+    }
+
+    function handleEditCourseCoverUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      compressImageFile(file, 900, (dataUrl) => {
+        editingCourseCoverBase64 = dataUrl;
+        showToast('تم تحديث صورة الغلاف الجديدة!', 'success');
+      });
+    }
+
+    function adminAddCourse(e) {
+      e.preventDefault();
+      appState.courses.unshift({
+        id: 'c_' + Date.now(),
+        title: document.getElementById('newCourseTitle').value.trim(),
+        gradeId: document.getElementById('newCourseGrade').value,
+        badge: document.getElementById('newCourseBadge').value,
+        price: Number(document.getElementById('newCoursePrice').value || 0),
+        oldPrice: Number(document.getElementById('newCourseOldPrice').value || 0),
+        durationLabel: document.getElementById('newCourseDuration').value,
+        pdfUrl: document.getElementById('newCoursePdf').value.trim() || 'https://drive.google.com',
+        description: document.getElementById('newCourseDesc').value.trim(),
+        coverImage: newCourseCoverBase64 || '',
+        published: document.getElementById('newCoursePublished').checked,
+        featured: document.getElementById('newCourseFeatured').checked,
+        lessons: []
+      });
+      newCourseCoverBase64 = '';
+      saveState(true);
+      renderPublicSections();
+      renderAdminSection('courses');
+      showToast('تم إنشاء الكورس ومزامنته مع السحابة بنجاح!', 'success');
+    }
+
+    function adminDeleteCourse(courseId) {
+      const target = appState.courses.find(c => c.id === courseId);
+      if (!target) return;
+      showConfirmModal('حذف الكورس نهائياً', `هل أنت متأكد من حذف كورس «${target.title}» بجميع محاضراته؟`, () => {
+        appState.courses = appState.courses.filter(c => c.id !== courseId);
+        saveState(true);
+        renderPublicSections();
+        renderAdminSection('courses');
+        showToast('تم حذف الكورس نهائياً من المنصة والسحابة!', 'success');
+      });
+    }
+
+    function openEditCourseModal(courseId) {
+      const c = appState.courses.find(item => item.id === courseId);
+      if (!c) return;
+      editingCourseCoverBase64 = c.coverImage || '';
+      document.getElementById('editCourseId').value = c.id;
+      document.getElementById('editCourseTitle').value = c.title;
+      document.getElementById('editCourseGrade').value = c.gradeId;
+      document.getElementById('editCourseBadge').value = c.badge || 'شرح منهج';
+      document.getElementById('editCoursePrice').value = c.price;
+      document.getElementById('editCourseOldPrice').value = c.oldPrice || 0;
+      document.getElementById('editCourseDuration').value = c.durationLabel || 'مفتوح طوال العام';
+      document.getElementById('editCoursePdf').value = c.pdfUrl || '';
+      document.getElementById('editCourseDesc').value = c.description || '';
+      openModal('editCourseModal');
+    }
+
+    function submitEditCourse(e) {
+      e.preventDefault();
+      const id = document.getElementById('editCourseId').value;
+      const c = appState.courses.find(item => item.id === id);
+      if (!c) return;
+      c.title = document.getElementById('editCourseTitle').value.trim();
+      c.gradeId = document.getElementById('editCourseGrade').value;
+      c.badge = document.getElementById('editCourseBadge').value;
+      c.price = Number(document.getElementById('editCoursePrice').value || 0);
+      c.oldPrice = Number(document.getElementById('editCourseOldPrice').value || 0);
+      c.durationLabel = document.getElementById('editCourseDuration').value.trim();
+      c.pdfUrl = document.getElementById('editCoursePdf').value.trim();
+      c.description = document.getElementById('editCourseDesc').value.trim();
+      c.coverImage = editingCourseCoverBase64;
+      saveState(true);
+      closeModal('editCourseModal');
+      renderPublicSections();
+      renderAdminSection('courses');
+      showToast('تم حفظ تعديلات الكورس ومزامنتها!', 'success');
+    }
+
+    function adminToggleCoursePublish(courseId) {
+      const c = appState.courses.find(item => item.id === courseId);
+      if (!c) return;
+      c.published = c.published === false ? true : false;
+      saveState(true);
+      renderPublicSections();
+      renderAdminSection('courses');
+      showToast(c.published ? 'تم نشر الكورس للطلاب' : 'تم إخفاء الكورس (مسودة)', 'info');
+    }
+
+    function adminToggleCourseFeatured(courseId) {
+      const c = appState.courses.find(item => item.id === courseId);
+      if (!c) return;
+      c.featured = !c.featured;
+      saveState(true);
+      renderPublicSections();
+      renderAdminSection('courses');
+      showToast(c.featured ? 'تم تمييز الكورس بشارة ⭐' : 'تم إلغاء تمييز الكورس', 'info');
+    }
+
+    function adminDuplicateCourse(courseId) {
+      const orig = appState.courses.find(item => item.id === courseId);
+      if (!orig) return;
+      const copy = JSON.parse(JSON.stringify(orig));
+      copy.id = 'c_' + Date.now();
+      copy.title = orig.title + ' (نسخة)';
+      copy.lessons = (copy.lessons || []).map((l, i) => ({ ...l, id: 'l_' + Date.now() + '_' + i }));
+      appState.courses.unshift(copy);
+      saveState(true);
+      renderPublicSections();
+      renderAdminSection('courses');
+      showToast('تم استنساخ الكورس بجميع محاضراته!', 'success');
+    }
+
+    function adminJumpToCourseCodes(courseId) {
+      selectAdminSection('codes');
+      setTimeout(() => {
+        const sel = document.getElementById('codeCourseTarget');
+        if (sel) sel.value = courseId;
+      }, 50);
+    }
+
+    function adminEnrollStudentByPhone(courseId) {
+      const input = document.getElementById(`enrollPhone_${courseId}`);
+      const phone = input ? input.value.trim() : '';
+      if (!phone) {
+        showToast('أدخل رقم هاتف الطالب أولاً', 'error');
+        return;
+      }
+      const student = appState.students.find(st => st.phone === phone);
+      if (!student) {
+        showToast('لا يوجد طالب مسجل بهذا الرقم، اطلب منه إنشاء حساب أولاً', 'error');
+        return;
+      }
+      if (!Array.isArray(student.enrolledCourses)) student.enrolledCourses = [];
+      if (!student.enrolledCourses.includes(courseId)) {
+        student.enrolledCourses.push(courseId);
+        saveState(true);
+        renderAdminSection('courses');
+        showToast(`تم تفعيل الكورس للطالب ${student.name} بنجاح!`, 'success');
+      } else {
+        showToast(`الكورس مفعّل بالفعل للطالب ${student.name}`, 'info');
+      }
+    }
+
+    function adminAddLesson(e, courseId) {
+      e.preventDefault();
+      const course = appState.courses.find(c => c.id === courseId);
+      if (!course) return;
+      if (!Array.isArray(course.lessons)) course.lessons = [];
+      const form = e.target;
+      course.lessons.push({
+        id: 'l_' + Date.now(),
+        title: form.lTitle.value.trim(),
+        videoUrl: form.lUrl.value.trim(),
+        duration: form.lDuration ? form.lDuration.value.trim() : '',
+        isFree: form.lFree.checked
+      });
+      saveState(true);
+      renderPublicSections();
+      renderAdminSection('courses');
+      showToast('تمت إضافة المحاضرة بنجاح!', 'success');
+    }
+
+    function adminDeleteLesson(courseId, lessonId) {
+      const course = appState.courses.find(c => c.id === courseId);
+      if (!course || !Array.isArray(course.lessons)) return;
+      course.lessons = course.lessons.filter(l => l.id !== lessonId);
+      saveState(true);
+      renderPublicSections();
+      renderAdminSection('courses');
+      showToast('تم حذف المحاضرة', 'info');
+    }
+
+    function adminMoveLesson(courseId, lessonIdx, direction) {
+      const course = appState.courses.find(c => c.id === courseId);
+      if (!course || !Array.isArray(course.lessons)) return;
+      const targetIdx = lessonIdx + direction;
+      if (targetIdx < 0 || targetIdx >= course.lessons.length) return;
+      const temp = course.lessons[lessonIdx];
+      course.lessons[lessonIdx] = course.lessons[targetIdx];
+      course.lessons[targetIdx] = temp;
+      saveState(true);
+      renderAdminSection('courses');
+    }
+
+    function handleGradeImageUpload(e, idx) {
+      const file = e.target.files[0];
+      if (!file) return;
+      compressImageFile(file, 1080, (dataUrl) => {
+        appState.grades[idx].image = dataUrl;
+        saveState(true);
+        renderPublicSections();
+        renderAdminSection('grades');
+        showToast('تم تحديث صورة المرحلة الدراسية ومزامنتها!', 'success');
+      });
+    }
+
+    function saveGradeChanges(idx) {
+      appState.grades[idx].name = document.getElementById(`gradeName_${idx}`).value.trim();
+      appState.grades[idx].description = document.getElementById(`gradeDesc_${idx}`).value.trim();
+      saveState(true);
+      renderPublicSections();
+      showToast('تم حفظ بيانات المرحلة الدراسية', 'success');
+    }
+
+    function adminGenerateCodes(e) {
+      e.preventDefault();
+      const prefix = document.getElementById('codePrefix').value.trim().toUpperCase() || 'HOOT';
+      const count = Math.min(200, Math.max(1, Number(document.getElementById('codeCount').value)));
+      const courseId = document.getElementById('codeCourseTarget').value;
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+      for (let i = 0; i < count; i++) {
+        let rand = '';
+        for (let j = 0; j < 6; j++) rand += chars[Math.floor(Math.random() * chars.length)];
+        appState.codes.unshift({
+          code: `${prefix}-${rand}`,
+          courseId,
+          usedBy: null,
+          createdAt: new Date().toISOString().slice(0, 10)
+        });
+      }
+      saveState(true);
+      renderAdminSection('codes');
+      showToast(`تم توليد ${count} كود تفعيل بنجاح!`, 'success');
+    }
+
+    function copyTextFallback(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      showToast('تم النسخ إلى الحافظة: ' + text, 'success');
+    }
+
+    function copyAllUnusedCodes() {
+      const list = appState.codes.filter(c => !c.usedBy).map(c => c.code).join('\n');
+      if (!list) {
+        showToast('لا توجد أكواد غير مستخدمة حالياً', 'info');
+        return;
+      }
+      copyTextFallback(list);
+    }
+
+    function deleteCode(idx) {
+      appState.codes.splice(idx, 1);
+      saveState(true);
+      renderAdminSection('codes');
+      showToast('تم حذف الكود', 'info');
+    }
+
+    function selectAdminTheme(themeId, color) {
+      appState.settings.themeId = themeId;
+      appState.settings.primaryColor = color;
+      saveState(true);
+      applyBrandingAndTheme();
+      renderAdminSection('appearance');
+      showToast('تم تطبيق سمة الألوان ومزامنتها!', 'success');
+    }
+
+    function handleTeacherImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      compressImageFile(file, 800, (dataUrl) => {
+        appState.settings.teacherImage = dataUrl;
+        saveState(true);
+        applyBrandingAndTheme();
+        renderAdminSection('appearance');
+        showToast('تم تحديث صورتك الشخصية في المنصة!', 'success');
+      });
+    }
+
+    function savePlatformSettings(e) {
+      e.preventDefault();
+      appState.settings.platformName = document.getElementById('setPlatName').value.trim();
+      appState.settings.subtitle = document.getElementById('setPlatSub').value.trim();
+      appState.settings.supervisor = document.getElementById('setPlatSup').value.trim();
+      appState.settings.whatsapp = document.getElementById('setPlatWa').value.trim();
+      appState.settings.protectionWatermark = document.getElementById('setProtWm').checked;
+      appState.settings.protectionBlackout = document.getElementById('setProtBo').checked;
+      saveState(true);
+      applyBrandingAndTheme();
+      showToast('تم حفظ إعدادات المنصة والحماية!', 'success');
+    }
+
+    function saveAdminProfile(e) {
+      e.preventDefault();
+      appState.adminProfile.name = document.getElementById('profName').value.trim();
+      appState.adminProfile.phone = document.getElementById('profPhone').value.trim();
+      appState.adminProfile.password = document.getElementById('profPass').value.trim();
+      saveState(true);
+      document.getElementById('sidebarAdminName').textContent = appState.adminProfile.name;
+      showToast('تم تحديث بيانات دخول المعلم بنجاح!', 'success');
+    }
+
+    function addCertificate(e) {
+      e.preventDefault();
+      appState.certificates.unshift({
+        id: 'cert_' + Date.now(),
+        studentName: document.getElementById('certStName').value.trim(),
+        title: document.getElementById('certTitle').value.trim(),
+        date: new Date().toISOString().slice(0, 10)
+      });
+      saveState(true);
+      renderAdminSection('certificates');
+      showToast('تم إصدار الشهادة وإرسالها!', 'success');
+    }
+
+    // =========================================================================
+    // 12. INTERACTIVE WHITEBOARD + AI ASSISTANT + SCREEN VIDEO RECORDER
+    // =========================================================================
+    let wbCanvas = null;
+    let wbCtx = null;
+    let wbDrawing = false;
+    let wbTool = 'pen';
+    let wbStartX = 0;
+    let wbStartY = 0;
+    let wbSnapshot = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecordingScreen = false;
 
     function initWhiteboardCanvas() {
-      const canvas = document.getElementById('whiteboardCanvas');
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      const ctx = canvas.getContext('2d');
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+      wbCanvas = document.getElementById('whiteboardCanvas');
+      if (!wbCanvas) return;
+      const rect = wbCanvas.getBoundingClientRect();
+      wbCanvas.width = rect.width || 900;
+      wbCanvas.height = rect.height || 460;
+      wbCtx = wbCanvas.getContext('2d');
+      wbCtx.lineCap = 'round';
+      wbCtx.lineJoin = 'round';
 
-      const getPos = (e) => {
-        const r = canvas.getBoundingClientRect();
+      const getCoords = (e) => {
+        const r = wbCanvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: clientX - r.left, y: clientY - r.top };
+        return {
+          x: (clientX - r.left) * (wbCanvas.width / r.width),
+          y: (clientY - r.top) * (wbCanvas.height / r.height)
+        };
       };
 
       const startDraw = (e) => {
         wbDrawing = true;
-        const pos = getPos(e);
+        const pos = getCoords(e);
         wbStartX = pos.x;
         wbStartY = pos.y;
-        wbSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
+        wbSnapshot = wbCtx.getImageData(0, 0, wbCanvas.width, wbCanvas.height);
+        wbCtx.beginPath();
+        wbCtx.moveTo(wbStartX, wbStartY);
       };
 
-      const moveDraw = (e) => {
+      const draw = (e) => {
         if (!wbDrawing) return;
-        e.preventDefault();
-        const pos = getPos(e);
-        const color = document.getElementById('wbColorPicker').value;
+        if (e.cancelable) e.preventDefault();
+        const pos = getCoords(e);
+        const color = document.getElementById('wbColorPicker')?.value || '#0284c7';
 
-        if (wbTool === 'pen' || wbTool === 'smart') {
-          ctx.globalAlpha = 1;
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 4;
-          ctx.lineTo(pos.x, pos.y);
-          ctx.stroke();
+        if (wbTool === 'eraser') {
+          wbCtx.globalCompositeOperation = 'destination-out';
+          wbCtx.lineWidth = 24;
+          wbCtx.lineTo(pos.x, pos.y);
+          wbCtx.stroke();
         } else if (wbTool === 'highlighter') {
-          ctx.globalAlpha = 0.25;
-          ctx.strokeStyle = '#facc15';
-          ctx.lineWidth = 18;
-          ctx.lineTo(pos.x, pos.y);
-          ctx.stroke();
-        } else if (wbTool === 'eraser') {
-          ctx.globalAlpha = 1;
-          ctx.clearRect(pos.x - 16, pos.y - 16, 32, 32);
+          wbCtx.globalCompositeOperation = 'source-over';
+          wbCtx.strokeStyle = color + '44';
+          wbCtx.lineWidth = 18;
+          wbCtx.lineTo(pos.x, pos.y);
+          wbCtx.stroke();
         } else if (wbTool === 'rect') {
-          ctx.putImageData(wbSnapshot, 0, 0);
-          ctx.globalAlpha = 1;
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 3;
-          ctx.strokeRect(wbStartX, wbStartY, pos.x - wbStartX, pos.y - wbStartY);
+          wbCtx.putImageData(wbSnapshot, 0, 0);
+          wbCtx.globalCompositeOperation = 'source-over';
+          wbCtx.strokeStyle = color;
+          wbCtx.lineWidth = 3;
+          wbCtx.strokeRect(wbStartX, wbStartY, pos.x - wbStartX, pos.y - wbStartY);
         } else if (wbTool === 'circle') {
-          ctx.putImageData(wbSnapshot, 0, 0);
-          ctx.globalAlpha = 1;
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 3;
-          const rad = Math.hypot(pos.x - wbStartX, pos.y - wbStartY);
-          ctx.beginPath();
-          ctx.arc(wbStartX, wbStartY, rad, 0, Math.PI * 2);
-          ctx.stroke();
+          wbCtx.putImageData(wbSnapshot, 0, 0);
+          wbCtx.globalCompositeOperation = 'source-over';
+          wbCtx.strokeStyle = color;
+          wbCtx.lineWidth = 3;
+          const radius = Math.hypot(pos.x - wbStartX, pos.y - wbStartY);
+          wbCtx.beginPath();
+          wbCtx.arc(wbStartX, wbStartY, radius, 0, Math.PI * 2);
+          wbCtx.stroke();
+        } else {
+          wbCtx.globalCompositeOperation = 'source-over';
+          wbCtx.strokeStyle = color;
+          wbCtx.lineWidth = wbTool === 'smart' ? 4 : 3;
+          wbCtx.lineTo(pos.x, pos.y);
+          wbCtx.stroke();
         }
       };
 
-      const endDraw = (e) => {
+      const endDraw = () => {
         if (!wbDrawing) return;
         wbDrawing = false;
-        ctx.globalAlpha = 1;
+        wbCtx.globalCompositeOperation = 'source-over';
       };
 
-      canvas.onmousedown = startDraw;
-      canvas.onmousemove = moveDraw;
-      canvas.onmouseup = endDraw;
-      canvas.ontouchstart = startDraw;
-      canvas.ontouchmove = moveDraw;
-      canvas.ontouchend = endDraw;
+      wbCanvas.onmousedown = startDraw;
+      wbCanvas.onmousemove = draw;
+      wbCanvas.onmouseup = endDraw;
+      wbCanvas.onmouseleave = endDraw;
+      wbCanvas.ontouchstart = startDraw;
+      wbCanvas.ontouchmove = draw;
+      wbCanvas.ontouchend = endDraw;
     }
 
-    function setWbTool(t) {
-      wbTool = t;
-      document.querySelectorAll('.wb-tool-btn').forEach(b => {
-        b.classList.remove('btn-primary');
-        b.classList.add('liquid-glass');
+    function setWbTool(tool) {
+      wbTool = tool;
+      document.querySelectorAll('.wb-tool-btn').forEach(btn => {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('liquid-glass');
       });
-      const active = document.getElementById(`wbTool-${t}`);
+      const active = document.getElementById(`wbTool-${tool}`);
       if (active) {
         active.classList.add('btn-primary');
         active.classList.remove('liquid-glass');
       }
     }
 
-    function setWbBackground(cls) {
-      const canvas = document.getElementById('whiteboardCanvas');
-      canvas.className = `w-full h-[460px] ${cls} cursor-crosshair block touch-none`;
-    }
-
-    function wbClear() {
-      const canvas = document.getElementById('whiteboardCanvas');
-      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-    }
-
     function wbInsertText() {
-      const canvas = document.getElementById('whiteboardCanvas');
-      const ctx = canvas.getContext('2d');
-      ctx.font = 'bold 22px Cairo, sans-serif';
-      ctx.fillStyle = document.getElementById('wbColorPicker').value;
-      ctx.fillText('ملاحظة هامة — مستر أمير أحمد', 60, 80);
+      if (!wbCtx || !wbCanvas) return;
+      const color = document.getElementById('wbColorPicker')?.value || '#0284c7';
+      wbCtx.globalCompositeOperation = 'source-over';
+      wbCtx.fillStyle = color;
+      wbCtx.font = 'bold 24px Cairo, sans-serif';
+      wbCtx.textAlign = 'right';
+      wbCtx.fillText('منصة الحوت التعليمية — مستر أمير أحمد', wbCanvas.width - 40, 65);
+      showToast('تم إدراج عنوان الشرح على السبورة', 'info');
     }
 
     function wbInsertQuestion() {
-      const canvas = document.getElementById('whiteboardCanvas');
-      const ctx = canvas.getContext('2d');
-      ctx.font = 'bold 18px Cairo, sans-serif';
-      ctx.fillStyle = '#0284c7';
-      ctx.fillText('سؤال: بم تفسر إرسال فرنسا حملتها على مصر عام 1798م؟', 50, 130);
+      if (!wbCtx || !wbCanvas) return;
+      const questions = [
+        'س: ما العلاقة بين الحملة الفرنسية وإيقاظ الوعي القومي لدى المصريين؟',
+        'س: دلل تاريخياً على أثر نظام الاحتكار في بناء القوة الذاتية لمصر.',
+        'س: قارن بين موقف الزعامة الشعبية في 1805م و 1809م.'
+      ];
+      const q = questions[Math.floor(Math.random() * questions.length)];
+      wbCtx.globalCompositeOperation = 'source-over';
+      wbCtx.fillStyle = '#0f172a';
+      wbCtx.fillRect(30, 90, wbCanvas.width - 60, 56);
+      wbCtx.fillStyle = '#38bdf8';
+      wbCtx.font = 'bold 18px Cairo, sans-serif';
+      wbCtx.textAlign = 'right';
+      wbCtx.fillText(q, wbCanvas.width - 50, 125);
+      showToast('تم إدراج سؤال تدريبي على السبورة!', 'success');
+    }
+
+    function toggleWbCalculator() {
+      const box = document.getElementById('wbCalculatorBox');
+      if (box) box.classList.toggle('hidden');
+    }
+
+    function wbCalcPress(key) {
+      const disp = document.getElementById('wbCalcDisplay');
+      if (!disp) return;
+      if (key === 'C') {
+        disp.value = '0';
+      } else if (key === '=') {
+        try {
+          const sanitized = disp.value.replace(/[^0-9+\-*/.]/g, '');
+          disp.value = String(Function(`"use strict"; return (${sanitized})`)());
+        } catch (e) {
+          disp.value = 'Error';
+        }
+      } else {
+        disp.value = disp.value === '0' ? key : disp.value + key;
+      }
+    }
+
+    function setWbBackground(bgClass) {
+      if (!wbCanvas) return;
+      wbCanvas.classList.remove('wb-ruled', 'wb-grid', 'wb-dark', 'wb-plain');
+      wbCanvas.classList.add(bgClass);
+    }
+
+    function wbClear() {
+      if (!wbCtx || !wbCanvas) return;
+      wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+      showToast('تم مسح السبورة', 'info');
     }
 
     function wbExportPng() {
-      const canvas = document.getElementById('whiteboardCanvas');
+      if (!wbCanvas) return;
       const link = document.createElement('a');
       link.download = `alhoot-whiteboard-${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = wbCanvas.toDataURL('image/png');
       link.click();
       showToast('تم حفظ صورة السبورة PNG!', 'success');
     }
 
     function wbSolveWithAi() {
-      showToast('تحليل AI الحوت: قطع طريق التجارة بين إنجلترا ومستعمراتها في الهند وتعويض فرنسا عن مستعمراتها.', 'info');
-    }
-
-    function toggleWbCalculator() {
-      document.getElementById('wbCalculatorBox').classList.toggle('hidden');
-    }
-
-    function wbCalcPress(k) {
-      const disp = document.getElementById('wbCalcDisplay');
-      if (k === 'C') disp.value = '0';
-      else if (k === '=') {
-        try { disp.value = Function('"use strict";return (' + disp.value + ')')(); } catch { disp.value = 'Error'; }
-      } else {
-        disp.value = disp.value === '0' ? k : disp.value + k;
-      }
+      showToast('AI الحوت: تم تحليل محتوى السبورة — الإجابة النموذجية جاهزة في مساعد AI!', 'success');
+      openAiModal();
     }
 
     async function toggleScreenRecording() {
-      const btnText = document.getElementById('wbRecordText');
-      if (mediaRecorder && mediaRecorder.state === 'recording') {
+      const btn = document.getElementById('wbRecordBtn');
+      const txt = document.getElementById('wbRecordText');
+
+      if (isRecordingScreen && mediaRecorder) {
         mediaRecorder.stop();
-        btnText.textContent = 'تسجيل الشاشة فيديو';
+        isRecordingScreen = false;
+        if (txt) txt.textContent = 'تسجيل الشاشة فيديو';
+        if (btn) btn.classList.remove('animate-pulse');
         return;
       }
 
       try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          showToast('متصفحك الحالي لا يدعم تسجيل الشاشة المباشر', 'error');
+          return;
+        }
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
         recordedChunks = [];
         mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+
         mediaRecorder.onstop = () => {
           const blob = new Blob(recordedChunks, { type: 'video/webm' });
           const url = URL.createObjectURL(blob);
@@ -3626,22 +4457,25 @@
           a.download = `alhoot-lesson-${Date.now()}.webm`;
           a.click();
           stream.getTracks().forEach(t => t.stop());
-          showToast('تم حفظ تسجيل الفيديو على جهازك بنجاح!', 'success');
+          showToast('تم حفظ فيديو المحاضرة المسجل على جهازك!', 'success');
         };
+
         mediaRecorder.start();
-        btnText.textContent = 'إيقاف وحفظ التسجيل';
-        showToast('بدأ تسجيل الشاشة بالصوت الآن...', 'info');
+        isRecordingScreen = true;
+        if (txt) txt.textContent = 'إيقاف وحفظ الفيديو...';
+        if (btn) btn.classList.add('animate-pulse');
+        showToast('بدأ تسجيل الشاشة والصوت للمحاضرة!', 'success');
       } catch (err) {
-        showToast('تعذر بدء تسجيل الشاشة أو تم إلغاء الصلاحية', 'error');
+        showToast('تم إلغاء تسجيل الشاشة أو لم يتم منح الإذن', 'info');
       }
     }
 
     // =========================================================================
-    // 13. INITIALIZE ON PAGE LOAD
+    // 13. INITIALIZE PLATFORM ON LOAD
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
-      const savedDark = localStorage.getItem('alhoot_dark_mode') === '1';
-      if (savedDark) {
+      const savedDark = safeGetStorage(localStorage, 'alhoot_dark_mode');
+      if (savedDark === '1') {
         document.documentElement.classList.add('dark');
         updateDarkIcons(true);
       }
@@ -3649,6 +4483,10 @@
       updateAuthUI();
       renderPublicSections();
       initFirebaseSync();
+
+      if (currentUser && currentUser.role === 'admin') {
+        switchToAdminDashboard();
+      }
     });
   </script>
 </body>
