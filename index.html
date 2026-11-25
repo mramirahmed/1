@@ -169,6 +169,90 @@
       animation: fadeSlide 0.35s ease;
     }
 
+    /* Custom Pro Video Player Range Sliders */
+    .player-seek-bar {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      outline: none;
+      cursor: pointer;
+      transition: height 0.15s ease;
+    }
+    .player-seek-bar:hover {
+      height: 9px;
+    }
+    .player-seek-bar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.85);
+      transition: transform 0.15s ease;
+    }
+    .player-seek-bar::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+    .player-seek-bar::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.85);
+    }
+
+    .player-vol-bar {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 74px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      outline: none;
+      cursor: pointer;
+    }
+    .player-vol-bar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid #ffffff;
+      cursor: pointer;
+    }
+    .player-vol-bar::-moz-range-thumb {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 2px solid #ffffff;
+      cursor: pointer;
+    }
+
+    /* Fullscreen Player Layout Adaptation */
+    #protectedPlayerOuter:fullscreen {
+      background: #020617;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0;
+      border-radius: 0;
+    }
+    #protectedPlayerOuter:fullscreen #protectedVideoStage {
+      flex: 1;
+      aspect-ratio: auto;
+      max-height: calc(100vh - 96px);
+    }
+
     @media print {
       body * { visibility: hidden !important; }
       #printableStudentCardArea, #printableStudentCardArea * { visibility: visible !important; }
@@ -564,45 +648,139 @@
     </div>
   </div>
 
-  <!-- Protected Video Player Modal -->
-  <div id="videoPlayerModal" class="fixed inset-0 z-[96] hidden items-center justify-center bg-slate-950/85 backdrop-blur-lg p-3 sm:p-5 overflow-y-auto">
+  <!-- Protected Video Player Modal (Upgraded Pro Control Bar Below Video + Interactive Seek Bar) -->
+  <div id="videoPlayerModal" class="fixed inset-0 z-[96] hidden items-center justify-center bg-slate-950/85 backdrop-blur-lg p-2.5 sm:p-5 overflow-y-auto">
     <div class="liquid-glass rounded-[32px] max-w-4xl w-full p-4 sm:p-6 relative my-auto">
+      <!-- Top Header -->
       <div class="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-200/60 dark:border-slate-800">
         <div>
           <span id="playerCourseBadge" class="px-2.5 py-0.5 rounded-full bg-theme-soft text-theme text-[11px] font-black">الصف الثالث الثانوي</span>
           <h3 id="playerLessonTitle" class="text-sm sm:text-lg font-black mt-1">عنوان المحاضرة</h3>
         </div>
-        <button type="button" onclick="closeVideoPlayer()" class="w-9 h-9 rounded-full bg-rose-500/15 text-rose-500 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        <button type="button" onclick="closeVideoPlayer()" class="w-9 h-9 rounded-full bg-rose-500/15 text-rose-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
 
-      <div id="protectedPlayerWrapper" class="relative aspect-video w-full rounded-2xl overflow-hidden bg-black select-none">
-        <div id="playerIframeContainer" class="w-full h-full"></div>
+      <!-- Unified Player Shell (Video Frame on Top + Sleek Control Deck Directly Below) -->
+      <div id="protectedPlayerOuter" class="rounded-2xl overflow-hidden bg-slate-950 border border-slate-800/90 shadow-2xl select-none">
+        
+        <!-- 1. Protected Video Stage (Clean View Without Floating Buttons) -->
+        <div id="protectedVideoStage" class="relative aspect-video w-full bg-black overflow-hidden">
+          <div id="playerIframeContainer" class="w-full h-full"></div>
 
-        <div class="absolute inset-0 z-10 pointer-events-none">
-          <div id="studentWatermark" class="watermark-float px-3 py-1 rounded-lg bg-black/45 text-white/60 text-xs font-mono font-black">منصة الحوت</div>
-        </div>
-
-        <div id="blackoutShield" class="hidden absolute inset-0 z-30 bg-slate-950 text-white flex-col items-center justify-center p-6 text-center space-y-3">
-          <i class="fa-solid fa-shield-halved text-4xl text-rose-500"></i>
-          <h4 class="text-lg font-black">تم تفعيل درع الحماية!</h4>
-          <p class="text-xs text-slate-300 max-w-sm">تم رصد محاولة فتح أدوات المطور أو التقاط الشاشة. أغلق أدوات المطور ثم اضغط للمتابعة.</p>
-          <button type="button" onclick="dismissBlackoutShield()" class="btn-primary px-5 py-2 rounded-xl text-xs font-extrabold">متابعة المشاهدة</button>
-        </div>
-
-        <div class="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between gap-2 bg-slate-950/75 backdrop-blur-md px-3.5 py-2 rounded-xl text-white">
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="playerCommand('togglePlay')" class="px-3 py-1.5 rounded-lg bg-theme text-xs font-extrabold"><i class="fa-solid fa-play"></i> تشغيل</button>
-            <select onchange="playerCommand('speed', this.value)" class="px-2.5 py-1.5 rounded-lg bg-white/10 text-xs font-bold">
-              <option value="1" class="text-black">1x</option>
-              <option value="1.25" class="text-black">1.25x</option>
-              <option value="1.5" class="text-black">1.5x</option>
-              <option value="2" class="text-black">2x</option>
-            </select>
+          <!-- Click-to-Play/Pause Transparent Protection Overlay (Blocks Right-Click & Direct YouTube Copy) -->
+          <div id="videoClickShield" onclick="playerCommand('togglePlay')" ondblclick="toggleProtectedFullscreen()" class="absolute inset-0 z-10 cursor-pointer flex items-center justify-center group">
+            <!-- Center Play Pulse Indicator when Paused -->
+            <div id="centerPlayBadge" class="w-16 h-16 rounded-full bg-slate-950/75 border-2 border-white/25 text-white flex items-center justify-center text-2xl shadow-2xl backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
+              <i id="centerPlayIcon" class="fa-solid fa-play mr-[-2px]"></i>
+            </div>
           </div>
-          <button type="button" onclick="toggleProtectedFullscreen()" class="px-3.5 py-1.5 rounded-lg bg-white/10 text-xs font-extrabold">ملء الشاشة</button>
+
+          <!-- Moving Student Watermark -->
+          <div class="absolute inset-0 z-10 pointer-events-none">
+            <div id="studentWatermark" class="watermark-float px-3 py-1 rounded-lg bg-black/50 text-white/65 text-xs font-mono font-black border border-white/10">منصة الحوت</div>
+          </div>
+
+          <!-- Anti-DevTools Blackout Shield -->
+          <div id="blackoutShield" class="hidden absolute inset-0 z-30 bg-slate-950 text-white flex-col items-center justify-center p-6 text-center space-y-3">
+            <i class="fa-solid fa-shield-halved text-4xl text-rose-500"></i>
+            <h4 class="text-lg font-black">تم تفعيل درع الحماية!</h4>
+            <p class="text-xs text-slate-300 max-w-sm">تم رصد محاولة فتح أدوات المطور أو التقاط الشاشة. أغلق أدوات المطور ثم اضغط للمتابعة.</p>
+            <button type="button" onclick="dismissBlackoutShield()" class="btn-primary px-5 py-2 rounded-xl text-xs font-extrabold">متابعة المشاهدة</button>
+          </div>
+        </div>
+
+        <!-- 2. Dedicated Control Deck Directly Underneath the Video Frame -->
+        <div id="playerControlDeck" class="bg-slate-900/95 border-t border-slate-800 px-3.5 sm:px-5 py-3 text-white space-y-2.5">
+          
+          <!-- Interactive Seek / Progress Bar + Time Display -->
+          <div class="flex items-center gap-3" dir="ltr">
+            <span id="playerCurrentTime" class="text-[11px] sm:text-xs font-mono font-extrabold text-sky-400 w-11 text-center shrink-0">00:00</span>
+            <div class="flex-1 flex items-center relative">
+              <input id="playerProgressBar" type="range" min="0" max="1000" value="0" step="1"
+                     oninput="onPlayerSeekInput(this.value)"
+                     onchange="onPlayerSeekCommit(this.value)"
+                     class="player-seek-bar"
+                     title="اسحب أو انقر للتقديم أو الترجيع" />
+            </div>
+            <span id="playerDurationTime" class="text-[11px] sm:text-xs font-mono font-extrabold text-slate-400 w-11 text-center shrink-0">00:00</span>
+          </div>
+
+          <!-- Controls Row: Play/Pause, Skip ±10s, Volume, Speed, Quality, Fullscreen -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+            
+            <!-- Right Side (Playback & Volume) -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <!-- Play / Pause Button -->
+              <button id="playerPlayPauseBtn" type="button" onclick="playerCommand('togglePlay')" class="btn-primary px-3.5 sm:px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shrink-0">
+                <i id="playerPlayIcon" class="fa-solid fa-play"></i>
+                <span id="playerPlayLabel">تشغيل</span>
+              </button>
+
+              <!-- Rewind 10s -->
+              <button type="button" onclick="playerCommand('skip', -10)" title="ترجيع 10 ثواني" class="px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold flex items-center gap-1 transition">
+                <i class="fa-solid fa-rotate-right text-[11px] text-sky-400"></i>
+                <span class="hidden sm:inline">10ث</span>
+              </button>
+
+              <!-- Forward 10s -->
+              <button type="button" onclick="playerCommand('skip', 10)" title="تقديم 10 ثواني" class="px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold flex items-center gap-1 transition">
+                <span class="hidden sm:inline">10ث</span>
+                <i class="fa-solid fa-rotate-left text-[11px] text-sky-400"></i>
+              </button>
+
+              <!-- Sound / Mute + Volume Slider -->
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white/10 border border-white/5">
+                <button type="button" onclick="playerCommand('toggleMute')" title="كتم / تشغيل الصوت" class="text-xs sm:text-sm text-sky-400 hover:text-white transition w-5 text-center">
+                  <i id="playerVolIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <input id="playerVolumeSlider" type="range" min="0" max="100" value="100"
+                       oninput="playerCommand('volume', this.value)"
+                       class="player-vol-bar hidden sm:block"
+                       title="مستوى الصوت" />
+              </div>
+            </div>
+
+            <!-- Left Side (Speed, Quality, Fullscreen) -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <!-- Speed Control -->
+              <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/10 border border-white/5" title="سرعة التشغيل">
+                <i class="fa-solid fa-gauge-high text-[11px] text-amber-400"></i>
+                <select id="playerSpeedSelect" onchange="playerCommand('speed', this.value)" class="bg-transparent text-white text-xs font-extrabold outline-none cursor-pointer">
+                  <option value="0.75" class="text-slate-900">0.75x</option>
+                  <option value="1" selected class="text-slate-900">1x (عادي)</option>
+                  <option value="1.25" class="text-slate-900">1.25x</option>
+                  <option value="1.5" class="text-slate-900">1.5x</option>
+                  <option value="1.75" class="text-slate-900">1.75x</option>
+                  <option value="2" class="text-slate-900">2x</option>
+                </select>
+              </div>
+
+              <!-- Quality Control -->
+              <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/10 border border-white/5" title="جودة الفيديو">
+                <i class="fa-solid fa-sliders text-[11px] text-emerald-400"></i>
+                <select id="playerQualitySelect" onchange="playerCommand('quality', this.value)" class="bg-transparent text-white text-xs font-extrabold outline-none cursor-pointer">
+                  <option value="default" selected class="text-slate-900">تلقائي (HD)</option>
+                  <option value="hd1080" class="text-slate-900">1080p FHD</option>
+                  <option value="hd720" class="text-slate-900">720p HD</option>
+                  <option value="large" class="text-slate-900">480p</option>
+                  <option value="medium" class="text-slate-900">360p</option>
+                </select>
+              </div>
+
+              <!-- Fullscreen Button -->
+              <button type="button" onclick="toggleProtectedFullscreen()" title="ملء الشاشة" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold flex items-center gap-1.5 transition">
+                <i id="playerFullscreenIcon" class="fa-solid fa-expand text-sky-400"></i>
+                <span class="hidden md:inline">ملء الشاشة</span>
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
 
+      <!-- Lessons Playlist & Attachments -->
       <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="md:col-span-2">
           <div id="playerLessonsList" class="space-y-2 max-h-48 overflow-y-auto"></div>
@@ -1799,16 +1977,133 @@
         return `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" class="rounded-xl bg-white p-1 border border-slate-300 mx-auto">${rects}</svg>`;
       }
 
-      // 13. Protected Video Player
+      // 13. Protected Video Player Engine (Interactive Progress Bar + External Control Deck)
       let activePlayerCourse = null;
-      function parseVideoEmbed(rawStoredUrl) {
+      let playerState = {
+        type: 'youtube', // 'youtube' | 'drive' | 'direct'
+        isPlaying: false,
+        isMuted: false,
+        volume: 100,
+        currentTime: 0,
+        duration: 0,
+        isSeeking: false,
+        progressTimer: null
+      };
+
+      function formatMediaTime(sec) {
+        const s = Math.max(0, Math.floor(Number(sec) || 0));
+        const hrs = Math.floor(s / 3600);
+        const mins = Math.floor((s % 3600) / 60);
+        const secs = s % 60;
+        if (hrs > 0) return `${hrs}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+
+      function syncPlayerPlayUI(playing) {
+        playerState.isPlaying = playing;
+        const playIcon = document.getElementById('playerPlayIcon');
+        const playLabel = document.getElementById('playerPlayLabel');
+        const centerBadge = document.getElementById('centerPlayBadge');
+        const centerIcon = document.getElementById('centerPlayIcon');
+
+        if (playIcon) playIcon.className = playing ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+        if (playLabel) playLabel.textContent = playing ? 'إيقاف' : 'تشغيل';
+        if (centerIcon) centerIcon.className = playing ? 'fa-solid fa-pause' : 'fa-solid fa-play mr-[-2px]';
+        if (centerBadge) {
+          centerBadge.classList.toggle('opacity-0', playing);
+          centerBadge.classList.toggle('scale-90', playing);
+        }
+      }
+
+      function syncProgressBarVisuals() {
+        const bar = document.getElementById('playerProgressBar');
+        const curEl = document.getElementById('playerCurrentTime');
+        const durEl = document.getElementById('playerDurationTime');
+        if (!bar || !curEl || !durEl) return;
+
+        curEl.textContent = formatMediaTime(playerState.currentTime);
+        durEl.textContent = formatMediaTime(playerState.duration);
+
+        const pct = playerState.duration > 0 ? Math.min(100, Math.max(0, (playerState.currentTime / playerState.duration) * 100)) : 0;
+        if (!playerState.isSeeking) {
+          bar.value = Math.round(pct * 10);
+        }
+        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#0284c7';
+        bar.style.background = `linear-gradient(to right, ${primaryColor} ${pct}%, rgba(255, 255, 255, 0.18) ${pct}%)`;
+      }
+
+      // Listen to YouTube IFrame API postMessage telemetry for real-time progress & duration
+      window.addEventListener('message', function (event) {
+        if (!event.data || typeof event.data !== 'string') return;
+        if (!event.origin || (!event.origin.includes('youtube.com') && !event.origin.includes('youtube-nocookie.com'))) return;
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === 'infoDelivery' && data.info) {
+            if (typeof data.info.currentTime === 'number' && !playerState.isSeeking) {
+              playerState.currentTime = data.info.currentTime;
+            }
+            if (typeof data.info.duration === 'number' && data.info.duration > 0) {
+              playerState.duration = data.info.duration;
+            }
+            if (typeof data.info.playerState === 'number') {
+              // 1 = playing, 2 = paused, 0 = ended
+              if (data.info.playerState === 1) syncPlayerPlayUI(true);
+              else if (data.info.playerState === 2 || data.info.playerState === 0) syncPlayerPlayUI(false);
+            }
+            syncProgressBarVisuals();
+          } else if (data.event === 'onReady') {
+            subscribeToYouTubeTelemetry();
+          }
+        } catch (e) {}
+      });
+
+      function subscribeToYouTubeTelemetry() {
+        const iframe = document.getElementById('activeVideoIframe');
+        if (!iframe || !iframe.contentWindow) return;
+        try {
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'alhoot_yt_player' }), '*');
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'addEventListener', args: ['onStateChange'] }), '*');
+        } catch (e) {}
+      }
+
+      function parseVideoSourceInfo(rawStoredUrl) {
         const clean = decodeMediaRef(rawStoredUrl).trim();
-        if (!clean) return 'https://www.youtube.com/embed/aqz-KE-bpKQ?rel=0&modestbranding=1&controls=0&disablekb=1';
+        const originParam = (window.location.origin && window.location.origin.startsWith('http')) ? `&origin=${encodeURIComponent(window.location.origin)}` : '';
+
+        if (!clean) {
+          return {
+            type: 'youtube',
+            embedUrl: `https://www.youtube.com/embed/aqz-KE-bpKQ?rel=0&modestbranding=1&controls=0&disablekb=1&iv_load_policy=3&playsinline=1&enablejsapi=1${originParam}`
+          };
+        }
+
         const driveMatch = clean.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-        if (driveMatch && driveMatch[1]) return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+        if (driveMatch && driveMatch[1]) {
+          return {
+            type: 'drive',
+            embedUrl: `https://drive.google.com/file/d/${driveMatch[1]}/preview`
+          };
+        }
+
         const ytMatch = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-        if (ytMatch && ytMatch[1]) return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0&modestbranding=1&controls=0&disablekb=1&iv_load_policy=3&playsinline=1&enablejsapi=1`;
-        return sanitizeUrl(clean);
+        if (ytMatch && ytMatch[1]) {
+          return {
+            type: 'youtube',
+            embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?rel=0&modestbranding=1&controls=0&disablekb=1&iv_load_policy=3&playsinline=1&enablejsapi=1${originParam}`
+          };
+        }
+
+        if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(clean)) {
+          return {
+            type: 'direct',
+            embedUrl: sanitizeUrl(clean)
+          };
+        }
+
+        return {
+          type: 'iframe',
+          embedUrl: sanitizeUrl(clean)
+        };
       }
 
       window.openCoursePlayer = function (courseId, specificLessonId = null) {
@@ -1823,10 +2118,66 @@
       };
 
       function loadLessonIntoPlayer(lesson) {
+        if (playerState.progressTimer) {
+          clearInterval(playerState.progressTimer);
+          playerState.progressTimer = null;
+        }
+
+        const sourceInfo = parseVideoSourceInfo(lesson.videoUrl);
+        playerState.type = sourceInfo.type;
+        playerState.currentTime = 0;
+        playerState.duration = 0;
+        playerState.isSeeking = false;
+        syncPlayerPlayUI(false);
+        syncProgressBarVisuals();
+
+        // Reset speed & quality selectors UI
+        const speedSel = document.getElementById('playerSpeedSelect');
+        const qualSel = document.getElementById('playerQualitySelect');
+        if (speedSel) speedSel.value = '1';
+        if (qualSel) qualSel.value = 'default';
+
         document.getElementById('playerCourseBadge').textContent = getGradeLabel(activePlayerCourse.gradeId);
         document.getElementById('playerLessonTitle').textContent = `${activePlayerCourse.title} — ${lesson.title}`;
         document.getElementById('playerPdfLink').href = sanitizeUrl(activePlayerCourse.pdfUrl || '#');
-        document.getElementById('playerIframeContainer').innerHTML = `<iframe id="activeVideoIframe" src="${parseVideoEmbed(lesson.videoUrl)}" class="w-full h-full border-0 pointer-events-none" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+
+        const container = document.getElementById('playerIframeContainer');
+        const clickShield = document.getElementById('videoClickShield');
+
+        if (sourceInfo.type === 'direct') {
+          if (clickShield) clickShield.classList.remove('hidden');
+          container.innerHTML = `<video id="activeDirectVideo" src="${sourceInfo.embedUrl}" class="w-full h-full object-contain bg-black" playsinline></video>`;
+          const vid = document.getElementById('activeDirectVideo');
+          vid.addEventListener('loadedmetadata', () => {
+            playerState.duration = vid.duration || 0;
+            syncProgressBarVisuals();
+          });
+          vid.addEventListener('timeupdate', () => {
+            if (!playerState.isSeeking) {
+              playerState.currentTime = vid.currentTime || 0;
+              syncProgressBarVisuals();
+            }
+          });
+          vid.addEventListener('play', () => syncPlayerPlayUI(true));
+          vid.addEventListener('pause', () => syncPlayerPlayUI(false));
+        } else if (sourceInfo.type === 'drive') {
+          // For Google Drive preview, allow interaction while keeping moving watermark
+          if (clickShield) clickShield.classList.add('hidden');
+          container.innerHTML = `<iframe id="activeVideoIframe" src="${sourceInfo.embedUrl}" class="w-full h-full border-0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+        } else {
+          // YouTube Secured IFrame with Custom Bottom Control Deck
+          if (clickShield) clickShield.classList.remove('hidden');
+          container.innerHTML = `<iframe id="activeVideoIframe" src="${sourceInfo.embedUrl}" onload="window._onPlayerIframeLoad()" class="w-full h-full border-0 pointer-events-none" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+
+          // Fallback smooth timer & telemetry pinger
+          playerState.progressTimer = setInterval(() => {
+            subscribeToYouTubeTelemetry();
+            if (playerState.isPlaying && !playerState.isSeeking && playerState.duration > 0) {
+              playerState.currentTime = Math.min(playerState.duration, playerState.currentTime + 0.5);
+              syncProgressBarVisuals();
+            }
+          }, 500);
+        }
 
         const unlocked = isCourseUnlocked(activePlayerCourse.id);
         document.getElementById('playerLessonsList').innerHTML = activePlayerCourse.lessons.map((l, idx) => {
@@ -1842,19 +2193,139 @@
         const wm = document.getElementById('studentWatermark');
         wm.textContent = currentUser ? `${currentUser.name} • ${currentUser.studentCode || currentUser.phone}` : 'منصة الحوت';
       }
+
+      window._onPlayerIframeLoad = function () {
+        setTimeout(subscribeToYouTubeTelemetry, 300);
+        setTimeout(subscribeToYouTubeTelemetry, 1000);
+      };
+
       window._selectPlayerLesson = function (idx) { if (activePlayerCourse && activePlayerCourse.lessons[idx]) loadLessonIntoPlayer(activePlayerCourse.lessons[idx]); };
+
+      // Interactive Seek Bar Handlers
+      window.onPlayerSeekInput = function (val) {
+        playerState.isSeeking = true;
+        if (playerState.duration > 0) {
+          playerState.currentTime = (Number(val) / 1000) * playerState.duration;
+          syncProgressBarVisuals();
+        }
+      };
+
+      window.onPlayerSeekCommit = function (val) {
+        if (playerState.duration > 0) {
+          const targetSec = (Number(val) / 1000) * playerState.duration;
+          playerState.currentTime = targetSec;
+          if (playerState.type === 'direct') {
+            const vid = document.getElementById('activeDirectVideo');
+            if (vid) vid.currentTime = targetSec;
+          } else if (playerState.type === 'youtube') {
+            const iframe = document.getElementById('activeVideoIframe');
+            if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [targetSec, true] }), '*');
+            }
+          }
+        }
+        playerState.isSeeking = false;
+        syncProgressBarVisuals();
+      };
+
       window.playerCommand = function (action, val = null) {
+        const directVid = document.getElementById('activeDirectVideo');
         const iframe = document.getElementById('activeVideoIframe');
-        if (!iframe) return;
-        const postYT = (func, args = []) => { try { iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*'); } catch (e) {} };
-        if (action === 'togglePlay') postYT('playVideo');
-        else if (action === 'speed') postYT('setPlaybackRate', [parseFloat(val)]);
+        const postYT = (func, args = []) => {
+          if (!iframe || !iframe.contentWindow) return;
+          try { iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*'); } catch (e) {}
+        };
+
+        if (action === 'togglePlay') {
+          if (playerState.type === 'direct' && directVid) {
+            if (directVid.paused) directVid.play(); else directVid.pause();
+          } else if (playerState.type === 'youtube') {
+            subscribeToYouTubeTelemetry();
+            if (playerState.isPlaying) {
+              postYT('pauseVideo');
+              syncPlayerPlayUI(false);
+            } else {
+              postYT('playVideo');
+              syncPlayerPlayUI(true);
+            }
+          }
+        }
+        else if (action === 'skip') {
+          const delta = Number(val) || 0;
+          const nextTime = Math.max(0, Math.min(playerState.duration || 99999, playerState.currentTime + delta));
+          playerState.currentTime = nextTime;
+          syncProgressBarVisuals();
+          if (playerState.type === 'direct' && directVid) {
+            directVid.currentTime = nextTime;
+          } else if (playerState.type === 'youtube') {
+            postYT('seekTo', [nextTime, true]);
+          }
+        }
+        else if (action === 'toggleMute') {
+          playerState.isMuted = !playerState.isMuted;
+          const volIcon = document.getElementById('playerVolIcon');
+          if (volIcon) volIcon.className = playerState.isMuted ? 'fa-solid fa-volume-xmark text-rose-500' : 'fa-solid fa-volume-high';
+          if (playerState.type === 'direct' && directVid) {
+            directVid.muted = playerState.isMuted;
+          } else if (playerState.type === 'youtube') {
+            postYT(playerState.isMuted ? 'mute' : 'unMute');
+          }
+        }
+        else if (action === 'volume') {
+          const vol = Number(val);
+          playerState.volume = vol;
+          playerState.isMuted = vol === 0;
+          const volIcon = document.getElementById('playerVolIcon');
+          if (volIcon) {
+            volIcon.className = vol === 0
+              ? 'fa-solid fa-volume-xmark text-rose-500'
+              : (vol < 50 ? 'fa-solid fa-volume-low' : 'fa-solid fa-volume-high');
+          }
+          if (playerState.type === 'direct' && directVid) {
+            directVid.volume = vol / 100;
+            directVid.muted = vol === 0;
+          } else if (playerState.type === 'youtube') {
+            postYT('unMute');
+            postYT('setVolume', [vol]);
+          }
+        }
+        else if (action === 'speed') {
+          const rate = parseFloat(val);
+          if (playerState.type === 'direct' && directVid) {
+            directVid.playbackRate = rate;
+          } else if (playerState.type === 'youtube') {
+            postYT('setPlaybackRate', [rate]);
+          }
+          showToast(`سرعة التشغيل: ${rate}x`, 'info');
+        }
+        else if (action === 'quality') {
+          if (playerState.type === 'youtube') {
+            postYT('setPlaybackQuality', [val]);
+          }
+          const labels = { default: 'تلقائي (HD)', hd1080: '1080p FHD', hd720: '720p HD', large: '480p', medium: '360p' };
+          showToast(`تم اختيار الجودة: ${labels[val] || val}`, 'info');
+        }
       };
+
       window.toggleProtectedFullscreen = function () {
-        const w = document.getElementById('protectedPlayerWrapper');
-        if (!document.fullscreenElement) w.requestFullscreen().catch(() => {}); else document.exitFullscreen().catch(() => {});
+        const w = document.getElementById('protectedPlayerOuter');
+        const icon = document.getElementById('playerFullscreenIcon');
+        if (!document.fullscreenElement) {
+          w.requestFullscreen().then(() => { if (icon) icon.className = 'fa-solid fa-compress text-sky-400'; }).catch(() => {});
+        } else {
+          document.exitFullscreen().then(() => { if (icon) icon.className = 'fa-solid fa-expand text-sky-400'; }).catch(() => {});
+        }
       };
-      window.closeVideoPlayer = function () { document.getElementById('playerIframeContainer').innerHTML = ''; closeModal('videoPlayerModal'); };
+
+      window.closeVideoPlayer = function () {
+        if (playerState.progressTimer) {
+          clearInterval(playerState.progressTimer);
+          playerState.progressTimer = null;
+        }
+        document.getElementById('playerIframeContainer').innerHTML = '';
+        closeModal('videoPlayerModal');
+      };
+
       window.dismissBlackoutShield = function () { document.getElementById('blackoutShield').classList.add('hidden'); };
 
       // 14. AI & Games
