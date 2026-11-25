@@ -196,7 +196,6 @@
     <!-- Sticky Glass Header -->
     <header class="sticky top-0 z-40 liquid-glass border-b border-slate-200/60 dark:border-slate-800">
       <div class="max-w-7xl mx-auto px-3 sm:px-6 py-3 flex items-center justify-between gap-2">
-        <!-- Brand Logo -->
         <a href="#" class="flex items-center gap-2.5 sm:gap-3 shrink-0">
           <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl btn-primary flex items-center justify-center text-lg sm:text-xl shadow-lg">
             <i class="fa-solid fa-crown"></i>
@@ -207,7 +206,6 @@
           </div>
         </a>
 
-        <!-- Action Controls -->
         <div class="flex items-center gap-1.5 sm:gap-2">
           <button type="button" onclick="toggleSound()" title="صوت النقرات" class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl liquid-glass flex items-center justify-center text-sm hover:scale-105 transition">
             <i id="soundIcon" class="fa-solid fa-volume-high text-theme"></i>
@@ -222,7 +220,6 @@
             <span>تثبيت التطبيق</span>
           </button>
 
-          <!-- Guest Auth Buttons -->
           <div id="guestAuthButtons" class="flex items-center gap-1.5 sm:gap-2">
             <button type="button" onclick="openAuthModal('login')" class="btn-primary px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5">
               <i class="fa-solid fa-right-to-bracket"></i>
@@ -233,7 +230,6 @@
             </button>
           </div>
 
-          <!-- Logged-in User Bar -->
           <div id="loggedInUserBar" class="hidden items-center gap-1.5 sm:gap-2">
             <button id="adminQuickReturnBtn" type="button" onclick="switchToAdminDashboard()" class="hidden btn-primary px-3.5 py-2 rounded-2xl text-xs font-extrabold items-center gap-1.5">
               <i class="fa-solid fa-gauge-high"></i>
@@ -417,7 +413,6 @@
         <button id="tabSignupBtn" type="button" onclick="switchAuthTab('signup')" class="py-2.5 rounded-xl text-xs sm:text-sm font-extrabold">إنشاء حساب طالب</button>
       </div>
 
-      <!-- Login Form -->
       <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
         <div class="text-center mb-2">
           <h3 class="text-xl font-black">مرحباً بعودتك إلى منصة الحوت</h3>
@@ -442,7 +437,6 @@
         <button id="loginSubmitBtn" type="submit" class="btn-primary w-full py-3.5 rounded-2xl text-sm font-black">دخول إلى المنصة</button>
       </form>
 
-      <!-- Signup Form -->
       <form id="signupForm" onsubmit="handleSignupSubmit(event)" class="hidden space-y-3">
         <div class="text-center mb-1">
           <h3 class="text-lg font-black">إنشاء حساب طالب جديد</h3>
@@ -908,10 +902,8 @@
       let currentAdminSection = 'overview';
       let activeCourseFilter = 'all';
       let activeTeacherSlide = 0;
-
-      // Search & Filter states for Admin Users section
-      let adminUserSearchQuery = '';
-      let adminUserGradeFilter = 'all';
+      let studentSearchQuery = '';
+      let studentGradeFilter = 'all';
 
       function toCleanArray(val) {
         if (!val) return [];
@@ -1037,9 +1029,8 @@
           }));
           enforceActiveStudentSession();
           renderPublicSections();
-          if (isAuthorizedAdmin()) {
-            if (currentAdminSection === 'users') renderFilteredStudentsList();
-            else renderAdminSection(currentAdminSection);
+          if (isAuthorizedAdmin() && (currentAdminSection === 'users' || currentAdminSection === 'overview' || currentAdminSection === 'center_attendance')) {
+            renderAdminSection(currentAdminSection);
           }
         });
 
@@ -1372,4 +1363,1170 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       };
       window.switchToPublicView = function () {
-        document.getElementById('adminDashboard').class
+        document.getElementById('adminDashboard').classList.add('hidden');
+        document.getElementById('publicApp').classList.remove('hidden');
+        renderPublicSections();
+      };
+
+      // 10. Storefront Rendering
+      function getGradeLabel(gradeId) { const g = appState.grades.find(item => item.id === gradeId); return g ? g.name : 'المرحلة الثانوية'; }
+      function isCourseUnlocked(courseId) {
+        if (isAuthorizedAdmin()) return true;
+        const course = appState.courses.find(c => c.id === courseId);
+        if (course && Number(course.price) === 0) return true;
+        if (!currentUser || currentUser.role !== 'student') return false;
+        const st = appState.students.find(s => s.id === currentUser.id);
+        return st && Array.isArray(st.enrolledCourses) && st.enrolledCourses.includes(courseId);
+      }
+
+      window.nextTeacherSlide = function () { if (appState.teachers.length) { activeTeacherSlide = (activeTeacherSlide + 1) % appState.teachers.length; renderTeachersCarousel(); } };
+      window.prevTeacherSlide = function () { if (appState.teachers.length) { activeTeacherSlide = (activeTeacherSlide - 1 + appState.teachers.length) % appState.teachers.length; renderTeachersCarousel(); } };
+      window.goToTeacherSlide = function (idx) { activeTeacherSlide = idx; renderTeachersCarousel(); };
+
+      function renderTeachersCarousel() {
+        const container = document.getElementById('teachersCarouselContainer'), dots = document.getElementById('teachersCarouselDots');
+        const list = appState.teachers || [];
+        if (!list.length) { container.innerHTML = ''; dots.innerHTML = ''; return; }
+        if (activeTeacherSlide >= list.length) activeTeacherSlide = 0;
+        const activeT = list[activeTeacherSlide];
+        container.innerHTML = `
+          <div class="teacher-slide-anim liquid-glass rounded-[32px] p-5 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center border-2 border-theme/30">
+            <div class="md:col-span-4"><div class="aspect-square max-w-[250px] mx-auto rounded-[28px] overflow-hidden shadow-2xl bg-slate-900"><img src="${sanitizeUrl(activeT.photo)}" class="w-full h-full object-cover" /></div></div>
+            <div class="md:col-span-8 text-center md:text-right space-y-3">
+              <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-theme-soft text-theme text-xs font-black"><i class="fa-solid fa-chalkboard-user"></i><span>معلم معتمد (${activeTeacherSlide + 1} / ${list.length})</span></div>
+              <h3 class="text-2xl sm:text-3xl font-black">${escapeHtml(activeT.name)}</h3>
+              <p class="text-sm font-extrabold text-theme">${escapeHtml(activeT.role)}</p>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${escapeHtml(activeT.bio || '')}</p>
+            </div>
+          </div>`;
+        dots.innerHTML = list.map((_, idx) => `<button type="button" onclick="goToTeacherSlide(${idx})" class="h-2.5 rounded-full transition-all ${idx === activeTeacherSlide ? 'w-8 btn-primary' : 'w-2.5 bg-slate-300 dark:bg-slate-700'}"></button>`).join('');
+      }
+
+      function renderPublicSections() {
+        renderTeachersCarousel();
+        document.getElementById('gradesGrid').innerHTML = appState.grades.map(g => `
+          <div onclick="selectGradeAndScroll('${escapeHtml(g.id)}')" class="cursor-pointer liquid-glass liquid-card-hover rounded-[32px] p-4 group">
+            <div class="aspect-square w-full rounded-[24px] overflow-hidden relative mb-4 bg-slate-900"><img src="${sanitizeUrl(g.image)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" /></div>
+            <div class="px-2 pb-2 flex items-center justify-between gap-2">
+              <div><h3 class="text-lg sm:text-xl font-black group-hover:text-theme transition">${escapeHtml(g.name)}</h3><p class="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-1">${escapeHtml(g.description)}</p></div>
+              <div class="w-10 h-10 rounded-2xl bg-theme-soft text-theme flex items-center justify-center shrink-0"><i class="fa-solid fa-arrow-left"></i></div>
+            </div>
+          </div>`).join('');
+
+        const featuresList = (appState.homeUI && Array.isArray(appState.homeUI.features)) ? appState.homeUI.features : DEFAULT_FEATURES;
+        document.getElementById('featuresGrid').innerHTML = featuresList.map(f => `
+          <div class="liquid-glass liquid-card-hover rounded-3xl p-5 sm:p-6">
+            <div class="w-12 h-12 rounded-2xl ${escapeHtml(f.colorClass || 'bg-theme-soft text-theme')} flex items-center justify-center text-xl mb-4"><i class="fa-solid ${escapeHtml(f.icon || 'fa-star')}"></i></div>
+            <h3 class="text-base sm:text-lg font-black mb-2">${escapeHtml(f.title)}</h3>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${escapeHtml(f.desc)}</p>
+          </div>`).join('');
+
+        const visibleCourses = appState.courses.filter(c => c.published !== false);
+        const filtered = activeCourseFilter === 'all' ? visibleCourses : visibleCourses.filter(c => c.gradeId === activeCourseFilter);
+        const coursesGrid = document.getElementById('coursesGrid');
+        if (!filtered.length) { coursesGrid.innerHTML = `<div class="col-span-full text-center py-12 liquid-glass rounded-3xl font-bold text-slate-500">لا توجد كورسات مضافة في هذا القسم حالياً.</div>`; return; }
+
+        coursesGrid.innerHTML = filtered.map(c => {
+          const lessons = c.lessons || [], exams = c.exams || [], unlocked = isCourseUnlocked(c.id), freeLesson = lessons.find(l => l.isFree);
+          return `
+            <div class="liquid-glass liquid-card-hover rounded-[28px] overflow-hidden flex flex-col justify-between">
+              <div class="p-5">
+                <div class="flex items-center justify-between gap-2 mb-3">
+                  <span class="px-3 py-1 rounded-full bg-theme-soft text-theme text-xs font-extrabold">${escapeHtml(getGradeLabel(c.gradeId))}</span>
+                  ${unlocked ? `<span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-500 text-xs font-black"><i class="fa-solid fa-unlock ml-1"></i> مفتوح لك</span>` : `<span class="text-base font-black text-theme">${Number(c.price)} ج.م</span>`}
+                </div>
+                <h3 class="text-base sm:text-lg font-black leading-snug mb-2">${escapeHtml(c.title)}</h3>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">${escapeHtml(c.description)}</p>
+                <div class="flex items-center gap-3 text-xs font-bold text-slate-500">
+                  <span><i class="fa-solid fa-circle-play text-theme ml-1"></i> ${lessons.length} محاضرات</span>
+                  <span><i class="fa-solid fa-file-pen text-amber-500 ml-1"></i> ${exams.length} امتحانات</span>
+                </div>
+              </div>
+              <div class="px-5 pb-5 pt-3 border-t border-slate-200/60 dark:border-slate-800 flex flex-wrap items-center gap-2">
+                ${unlocked
+                  ? `<button type="button" onclick="attemptEnterCourse('${escapeHtml(c.id)}')" class="btn-primary w-full py-3 rounded-2xl text-xs font-extrabold"><i class="fa-solid fa-play ml-1"></i> دخول المحاضرات والامتحانات</button>`
+                  : `${freeLesson ? `<button type="button" onclick="openCoursePlayer('${escapeHtml(c.id)}', '${escapeHtml(freeLesson.id)}')" class="py-2.5 px-3 rounded-2xl liquid-glass text-xs font-extrabold">حصة مجانية</button>` : ''}
+                     <button type="button" onclick="purchaseCourseWithWallet('${escapeHtml(c.id)}')" class="flex-1 py-2.5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold"><i class="fa-solid fa-wallet ml-1"></i> شراء بالمحفظة</button>
+                     <button type="button" onclick="openRedeemModal()" class="py-2.5 px-3 rounded-2xl btn-primary text-xs font-extrabold"><i class="fa-solid fa-ticket ml-1"></i> كود</button>`}
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      window.selectGradeAndScroll = function (gradeId) { filterCourses(gradeId); document.getElementById('coursesSection').scrollIntoView({ behavior: 'smooth' }); };
+      window.filterCourses = function (gradeId) {
+        activeCourseFilter = gradeId;
+        document.querySelectorAll('.course-filter-btn').forEach(btn => {
+          btn.classList.toggle('btn-primary', btn.dataset.filter === gradeId);
+          btn.classList.toggle('liquid-glass', btn.dataset.filter !== gradeId);
+        });
+        renderPublicSections();
+      };
+
+      // 11. Exams, Wallet & Redeem Code
+      window.attemptEnterCourse = function (courseId) {
+        const course = appState.courses.find(c => c.id === courseId);
+        if (!course) return;
+        if (currentUser && currentUser.role === 'student') {
+          const st = appState.students.find(s => s.id === currentUser.id);
+          const preExam = (course.exams || []).find(ex => ex.mandatory && ex.timing === 'before' && !(st.completedExams || []).includes(ex.id));
+          if (preExam) { showToast('يجب اجتياز الامتحان القبلي الإلزامي أولاً!', 'info'); openCourseExam(courseId, preExam.id, true); return; }
+        }
+        openCoursePlayer(courseId);
+      };
+
+      window.openCourseExam = function (courseId, examId, autoOpen = false) {
+        const course = appState.courses.find(c => c.id === courseId);
+        const exam = (course?.exams || []).find(e => e.id === examId);
+        if (!exam) return;
+        document.getElementById('examTimingBadge').textContent = exam.mandatory ? 'امتحان إلزامي' : 'امتحان تقييمي';
+        document.getElementById('examModalTitle').textContent = exam.title;
+        const qs = exam.questions || [];
+        document.getElementById('examModalBody').innerHTML = qs.length ? `
+          <div class="space-y-4">
+            ${qs.map((qItem, qIdx) => `
+              <div class="liquid-glass rounded-2xl p-4 space-y-2.5">
+                <div class="text-xs sm:text-sm font-black">${qIdx + 1}. ${escapeHtml(qItem.q)}</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  ${(qItem.options || []).map((opt, oIdx) => `<label class="flex items-center gap-2 p-3 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700 cursor-pointer text-xs font-bold"><input type="radio" name="cexam_q_${qIdx}" value="${oIdx}" /><span>${escapeHtml(opt)}</span></label>`).join('')}
+                </div>
+                <div id="cexam_res_${qIdx}" class="hidden text-xs font-extrabold"></div>
+              </div>`).join('')}
+            <button type="button" onclick="submitCourseExam('${escapeHtml(courseId)}', '${escapeHtml(examId)}', ${autoOpen})" class="btn-primary w-full py-3.5 rounded-2xl text-sm font-extrabold">تسليم الامتحان</button>
+            <div id="courseExamFinalResult" class="hidden p-4 rounded-2xl text-center font-black text-sm"></div>
+          </div>` : `<div class="p-6 text-center text-xs font-bold">لا توجد أسئلة مضافة بعد.</div>`;
+        openModal('courseExamModal');
+      };
+
+      window.submitCourseExam = async function (courseId, examId, autoOpen) {
+        const course = appState.courses.find(c => c.id === courseId);
+        const exam = (course?.exams || []).find(e => e.id === examId);
+        if (!exam) return;
+        let correct = 0; const qs = exam.questions || [];
+        qs.forEach((qItem, idx) => {
+          const sel = document.querySelector(`input[name="cexam_q_${idx}"]:checked`);
+          const resEl = document.getElementById(`cexam_res_${idx}`); resEl.classList.remove('hidden');
+          if (sel && Number(sel.value) === Number(qItem.answer)) { correct++; resEl.className = 'text-xs font-extrabold text-emerald-500'; resEl.textContent = '✓ إجابة صحيحة'; }
+          else { resEl.className = 'text-xs font-extrabold text-rose-500'; resEl.textContent = `✗ الصح: ${qItem.options[qItem.answer]}`; }
+        });
+        const pct = Math.round((correct / qs.length) * 100), box = document.getElementById('courseExamFinalResult');
+        box.classList.remove('hidden');
+        if (pct >= Number(exam.passingScore || 50)) {
+          box.className = 'p-4 rounded-2xl text-center font-black text-sm bg-emerald-500/15 text-emerald-600';
+          box.textContent = `🎉 اجتزت الامتحان بنسبة ${pct}%`;
+          if (currentUser && currentUser.role === 'student') {
+            const st = appState.students.find(s => s.id === currentUser.id);
+            if (st) { if (!st.completedExams.includes(examId)) st.completedExams.push(examId); await saveStudentRecord(st); }
+          }
+          if (autoOpen) setTimeout(() => { closeModal('courseExamModal'); openCoursePlayer(courseId); }, 1200);
+        } else {
+          box.className = 'p-4 rounded-2xl text-center font-black text-sm bg-rose-500/15 text-rose-600';
+          box.textContent = `حصلت على ${pct}% — حاول مرة أخرى!`;
+        }
+      };
+
+      window.openWalletModal = function () {
+        if (!currentUser) { showToast('سجّل الدخول بحساب طالب أولاً', 'info'); openAuthModal('login'); return; }
+        const st = appState.students.find(s => s.id === currentUser.id);
+        document.getElementById('walletBalanceBanner').textContent = `رصيد محفظتك الحالي: ${st ? Number(st.walletBalance || 0) : 0} ج.م`;
+        switchPaymentTab('vodafone');
+        openModal('walletModal');
+      };
+
+      window.switchPaymentTab = function (method) {
+        document.querySelectorAll('.pay-tab-btn').forEach(btn => {
+          btn.classList.toggle('btn-primary', btn.id === `payTab-${method}`);
+          btn.classList.toggle('liquid-glass', btn.id !== `payTab-${method}`);
+        });
+        const stage = document.getElementById('paymentTabStage'), s = appState.settings;
+        const opts = `<option value="wallet">شحن رصيد المحفظة</option>${appState.courses.map(c => `<option value="${escapeHtml(c.id)}">شراء كورس: ${escapeHtml(c.title)} (${c.price} ج.م)</option>`).join('')}`;
+        if (method === 'voucher') {
+          stage.innerHTML = `<div class="space-y-4"><input id="walletVoucherInput" type="text" placeholder="أدخل كود الشحن هنا" class="w-full px-4 py-3.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center font-mono text-base font-black uppercase" /><button type="button" onclick="document.getElementById('redeemCodeInput').value=document.getElementById('walletVoucherInput').value; closeModal('walletModal'); submitRedeemCode();" class="btn-primary w-full py-3.5 rounded-2xl text-xs font-extrabold">شحن وتفعيل الكود الآن</button></div>`;
+          return;
+        }
+        const infoBox = method === 'vodafone' ? `رقم فودافون كاش: <strong>${escapeHtml(s.vodafoneCashNumber)}</strong>` : method === 'instapay' ? `إنستا باي: <strong>${escapeHtml(s.instapayAddress)}</strong> (${escapeHtml(s.instapayPhone)})` : `الدفع بالبطاقة البنكية (فيزا / ميزة)`;
+        const label = method === 'vodafone' ? 'فودافون كاش' : method === 'instapay' ? 'إنستا باي' : 'بطاقة فيزا';
+        stage.innerHTML = `
+          <form onsubmit="submitPaymentRequest(event, '${label}')" class="space-y-4">
+            <div class="p-4 rounded-2xl bg-sky-500/10 border border-sky-500/30 text-xs font-bold">${infoBox}</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <select id="payTargetSelect" class="px-3.5 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">${opts}</select>
+              <input id="payAmountInput" type="number" min="10" required placeholder="المبلغ بالجنيه *" class="px-3.5 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-black" />
+            </div>
+            <input id="paySenderInput" type="text" required placeholder="رقم المحفظة / الحساب / البطاقة المحول منها *" class="w-full px-3.5 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+            <button type="submit" class="btn-primary w-full py-3.5 rounded-2xl text-xs font-extrabold">إرسال طلب التأكيد للإدارة</button>
+          </form>`;
+      };
+
+      window.submitPaymentRequest = async function (e, methodLabel) {
+        e.preventDefault();
+        if (!currentUser || currentUser.role !== 'student') return;
+        const st = appState.students.find(s => s.id === currentUser.id);
+        if (!st) return;
+        const targetVal = document.getElementById('payTargetSelect').value;
+        const amount = Number(document.getElementById('payAmountInput').value);
+        const senderInfo = document.getElementById('paySenderInput').value.trim();
+        let targetType = 'wallet', targetId = '', targetTitle = `شحن المحفظة (${amount} ج.م)`;
+        if (targetVal !== 'wallet') {
+          const c = appState.courses.find(x => x.id === targetVal);
+          if (c) { targetType = 'course'; targetId = c.id; targetTitle = `شراء كورس: ${c.title}`; }
+        }
+        await savePaymentRecord({
+          id: 'pay_' + Date.now(), studentId: st.id, studentName: st.name, studentCode: st.studentCode, studentPhone: st.phone,
+          method: methodLabel, senderInfo, amount, targetType, targetId, targetTitle, status: 'pending', createdAt: new Date().toLocaleString('ar-EG', { hour12: true })
+        });
+        closeModal('walletModal');
+        showToast('تم إرسال طلب الدفع بأمان! سيتم تأكيده من المعلم فوراً.', 'success');
+      };
+
+      window.purchaseCourseWithWallet = function (courseId) {
+        if (!currentUser || currentUser.role !== 'student') { showToast('سجّل الدخول بحساب طالب أولاً', 'info'); openAuthModal('login'); return; }
+        const st = appState.students.find(s => s.id === currentUser.id);
+        const course = appState.courses.find(c => c.id === courseId);
+        if (!st || !course) return;
+        const price = Number(course.price || 0), bal = Number(st.walletBalance || 0);
+        if (bal < price) { showToast(`رصيد محفظتك (${bal} ج.م) غير كافٍ.`, 'error'); openWalletModal(); return; }
+        showConfirmModal('تأكيد الشراء من المحفظة', `خصم ${price} ج.م من محفظتك لفتح كورس «${course.title}»؟`, async () => {
+          st.walletBalance = bal - price;
+          if (!st.enrolledCourses.includes(course.id)) st.enrolledCourses.push(course.id);
+          await saveStudentRecord(st);
+          renderPublicSections();
+          showToast(`تم فتح كورس «${course.title}» بنجاح!`, 'success');
+        });
+      };
+
+      window.openRedeemModal = function () {
+        if (!currentUser) { showToast('سجّل الدخول بحساب طالب أولاً', 'info'); openAuthModal('login'); return; }
+        document.getElementById('redeemCodeInput').value = '';
+        openModal('redeemModal');
+      };
+
+      window.submitRedeemCode = async function () {
+        const rawCode = document.getElementById('redeemCodeInput').value.trim().toUpperCase();
+        const codeKey = rawCode.replace(/[^A-Z0-9_-]/g, '');
+        if (!codeKey) { showToast('يرجى إدخال الكود', 'error'); return; }
+        if (!currentUser || currentUser.role !== 'student' || !firebaseDb) return;
+
+        try {
+          const snap = await firebaseDb.ref(`alhoot_codes_v4/${codeKey}`).once('value');
+          const codeObj = snap.val();
+          if (!codeObj) { showToast('الكود غير صحيح!', 'error'); return; }
+          if (codeObj.usedBy) { showToast('عذراً، هذا الكود مستخدم مسبقاً!', 'error'); return; }
+
+          const student = appState.students.find(s => s.id === currentUser.id);
+          if (!student) return;
+
+          await firebaseDb.ref(`alhoot_codes_v4/${codeKey}`).update({ usedBy: `${student.name} (${student.studentCode})` });
+
+          if (codeObj.type === 'wallet') {
+            student.walletBalance = Number(student.walletBalance || 0) + Number(codeObj.walletAmount || 0);
+            await saveStudentRecord(student);
+            closeModal('redeemModal');
+            showToast(`تم شحن محفظتك بمبلغ ${codeObj.walletAmount} ج.م!`, 'success');
+            return;
+          }
+
+          if (codeObj.courseId === 'all') {
+            appState.courses.forEach(c => { if (!student.enrolledCourses.includes(c.id)) student.enrolledCourses.push(c.id); });
+          } else if (!student.enrolledCourses.includes(codeObj.courseId)) {
+            student.enrolledCourses.push(codeObj.courseId);
+          }
+          await saveStudentRecord(student);
+          closeModal('redeemModal');
+          renderPublicSections();
+          showToast('مبروك! تم تفعيل الكورس في حسابك بنجاح', 'success');
+        } catch (err) {
+          showToast('تعذر تفعيل الكود أو تم استخدامه بالفعل', 'error');
+        }
+      };
+
+      // 12. Student Portal
+      window.openStudentPortal = async function () {
+        if (!currentUser || currentUser.role !== 'student') return;
+        const st = appState.students.find(s => s.id === currentUser.id);
+        if (!st) return;
+        (st.notifications || []).forEach(n => n.read = true);
+        await saveStudentRecord(st);
+        updateAuthUI();
+
+        document.getElementById('studentPortalSubtitle').textContent = `${st.name} • كود الطالب: ${st.studentCode} • ${getGradeLabel(st.grade)}`;
+        const myCourses = appState.courses.filter(c => (st.enrolledCourses || []).includes(c.id));
+        document.getElementById('studentPortalContent').innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="liquid-glass rounded-3xl p-5 border-2 border-theme/40 flex items-center justify-between gap-4">
+              <div class="space-y-1">
+                <span class="px-2.5 py-0.5 rounded-full bg-theme-soft text-theme text-[11px] font-black">كارت دخول السنتر والمنصة</span>
+                <h4 class="text-lg font-black">${escapeHtml(st.name)}</h4>
+                <div class="text-xs font-bold text-slate-500">الصف: ${escapeHtml(getGradeLabel(st.grade))}</div>
+                <div class="pt-1"><span class="px-3 py-1 rounded-xl bg-slate-900 text-sky-400 font-mono text-sm font-black">${escapeHtml(st.studentCode)}</span></div>
+              </div>
+              <div class="text-center shrink-0">${generateMiniQrSvg(st.studentCode)}</div>
+            </div>
+            <div class="liquid-glass rounded-3xl p-5 flex flex-col justify-between gap-3 bg-emerald-500/5">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 text-[11px] font-black">محفظة الطالب</span>
+                <div class="text-3xl font-black text-emerald-600 mt-2">${Number(st.walletBalance || 0)} ج.م</div>
+              </div>
+              <button type="button" onclick="closeModal('studentPortalModal'); openWalletModal()" class="btn-primary py-2.5 px-4 rounded-2xl text-xs font-extrabold w-full">شحن المحفظة</button>
+            </div>
+          </div>
+          <div class="liquid-glass rounded-3xl p-5">
+            <h4 class="text-sm font-black mb-3"><i class="fa-solid fa-bell text-amber-500 ml-1.5"></i> إشعارات المعلم (${(st.notifications || []).length})</h4>
+            <div class="space-y-2 max-h-36 overflow-y-auto">
+              ${(st.notifications || []).map(n => `<div class="p-3 rounded-2xl bg-amber-500/10 text-xs font-bold">${escapeHtml(n.text)}</div>`).join('') || '<p class="text-xs text-slate-500">لا توجد إشعارات.</p>'}
+            </div>
+          </div>
+          <div>
+            <h4 class="text-base font-black mb-3">كورساتي المفعّلة (${myCourses.length})</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              ${myCourses.map(c => `<div class="liquid-glass rounded-2xl p-4 flex items-center justify-between gap-3"><div class="text-sm font-black">${escapeHtml(c.title)}</div><button type="button" onclick="closeModal('studentPortalModal'); attemptEnterCourse('${escapeHtml(c.id)}')" class="btn-primary px-4 py-2 rounded-xl text-xs font-extrabold">دخول</button></div>`).join('') || '<div class="text-xs text-slate-500">لا توجد كورسات مفعلة بعد.</div>'}
+            </div>
+          </div>`;
+        openModal('studentPortalModal');
+      };
+
+      function generateMiniQrSvg(codeStr) {
+        let seed = 0;
+        for (let i = 0; i < codeStr.length; i++) seed = (seed * 31 + codeStr.charCodeAt(i)) % 9973;
+        let rects = '';
+        for (let r = 0; r < 7; r++) {
+          for (let c = 0; c < 7; c++) {
+            const isFinder = (r < 2 && c < 2) || (r < 2 && c > 4) || (r > 4 && c < 2);
+            if (isFinder || ((seed + r * 13 + c * 7) % 3 === 0)) rects += `<rect x="${c * 10 + 5}" y="${r * 10 + 5}" width="8" height="8" rx="1.5" fill="#0f172a"/>`;
+          }
+        }
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" class="rounded-xl bg-white p-1 border border-slate-300 mx-auto">${rects}</svg>`;
+      }
+
+      // 13. Protected Video Player
+      let activePlayerCourse = null;
+      function parseVideoEmbed(rawStoredUrl) {
+        const clean = decodeMediaRef(rawStoredUrl).trim();
+        if (!clean) return 'https://www.youtube.com/embed/aqz-KE-bpKQ?rel=0&modestbranding=1&controls=0&disablekb=1';
+        const driveMatch = clean.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (driveMatch && driveMatch[1]) return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+        const ytMatch = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (ytMatch && ytMatch[1]) return `https://www.youtube.com/embed/${ytMatch[1]}?rel=0&modestbranding=1&controls=0&disablekb=1&iv_load_policy=3&playsinline=1&enablejsapi=1`;
+        return sanitizeUrl(clean);
+      }
+
+      window.openCoursePlayer = function (courseId, specificLessonId = null) {
+        const course = appState.courses.find(c => c.id === courseId);
+        if (!course || !course.lessons || !course.lessons.length) { showToast('لا توجد محاضرات مرفوعة بعد', 'info'); return; }
+        const unlocked = isCourseUnlocked(courseId);
+        const targetLesson = specificLessonId ? course.lessons.find(l => l.id === specificLessonId) : course.lessons[0];
+        if (!unlocked && (!targetLesson || !targetLesson.isFree)) { showToast('هذا الكورس مغلق، اشترك أولاً', 'error'); openWalletModal(); return; }
+        activePlayerCourse = course;
+        loadLessonIntoPlayer(targetLesson);
+        openModal('videoPlayerModal');
+      };
+
+      function loadLessonIntoPlayer(lesson) {
+        document.getElementById('playerCourseBadge').textContent = getGradeLabel(activePlayerCourse.gradeId);
+        document.getElementById('playerLessonTitle').textContent = `${activePlayerCourse.title} — ${lesson.title}`;
+        document.getElementById('playerPdfLink').href = sanitizeUrl(activePlayerCourse.pdfUrl || '#');
+        document.getElementById('playerIframeContainer').innerHTML = `<iframe id="activeVideoIframe" src="${parseVideoEmbed(lesson.videoUrl)}" class="w-full h-full border-0 pointer-events-none" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+
+        const unlocked = isCourseUnlocked(activePlayerCourse.id);
+        document.getElementById('playerLessonsList').innerHTML = activePlayerCourse.lessons.map((l, idx) => {
+          const canWatch = unlocked || l.isFree;
+          return `<button type="button" onclick="${canWatch ? `window._selectPlayerLesson(${idx})` : `openWalletModal()`}" class="w-full text-right p-3 rounded-xl text-xs font-extrabold flex items-center justify-between gap-2 ${l.id === lesson.id ? 'btn-primary' : 'liquid-glass'}"><span>${idx + 1}. ${escapeHtml(l.title)}</span><span>${canWatch ? '<i class="fa-solid fa-play"></i>' : '<i class="fa-solid fa-lock text-amber-400"></i>'}</span></button>`;
+        }).join('');
+
+        document.getElementById('playerExamQuickBtns').innerHTML = (activePlayerCourse.exams || []).map(ex => `
+          <button type="button" onclick="openCourseExam('${escapeHtml(activePlayerCourse.id)}', '${escapeHtml(ex.id)}', false)" class="w-full py-2 px-3 rounded-xl bg-amber-500/15 text-amber-600 text-xs font-extrabold flex items-center justify-between">
+            <span class="truncate">${escapeHtml(ex.title)}</span>
+          </button>`).join('');
+
+        const wm = document.getElementById('studentWatermark');
+        wm.textContent = currentUser ? `${currentUser.name} • ${currentUser.studentCode || currentUser.phone}` : 'منصة الحوت';
+      }
+      window._selectPlayerLesson = function (idx) { if (activePlayerCourse && activePlayerCourse.lessons[idx]) loadLessonIntoPlayer(activePlayerCourse.lessons[idx]); };
+      window.playerCommand = function (action, val = null) {
+        const iframe = document.getElementById('activeVideoIframe');
+        if (!iframe) return;
+        const postYT = (func, args = []) => { try { iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*'); } catch (e) {} };
+        if (action === 'togglePlay') postYT('playVideo');
+        else if (action === 'speed') postYT('setPlaybackRate', [parseFloat(val)]);
+      };
+      window.toggleProtectedFullscreen = function () {
+        const w = document.getElementById('protectedPlayerWrapper');
+        if (!document.fullscreenElement) w.requestFullscreen().catch(() => {}); else document.exitFullscreen().catch(() => {});
+      };
+      window.closeVideoPlayer = function () { document.getElementById('playerIframeContainer').innerHTML = ''; closeModal('videoPlayerModal'); };
+      window.dismissBlackoutShield = function () { document.getElementById('blackoutShield').classList.add('hidden'); };
+
+      // 14. AI & Games
+      window.openAiModal = function () { openModal('aiModal'); };
+      window.handleAiChatSubmit = function (e) {
+        e.preventDefault();
+        const input = document.getElementById('aiChatInput'), q = input.value.trim();
+        if (!q) return;
+        const box = document.getElementById('aiChatMessages');
+        box.innerHTML += `<div class="flex justify-end"><div class="btn-primary rounded-2xl p-3 text-xs max-w-[80%]">${escapeHtml(q)}</div></div>`;
+        input.value = '';
+        setTimeout(() => { box.innerHTML += `<div class="liquid-glass rounded-2xl p-3 text-xs max-w-[85%]">إجابة ذكية من مساعد مستر أمير أحمد: احرص على ربط الأسباب بالنتائج التاريخية ومراجعة خرائط المفاهيم!</div>`; box.scrollTop = box.scrollHeight; }, 300);
+      };
+      window.openGamesModal = function () { openModal('gamesModal'); selectGame('memory'); };
+      window.selectGame = function (g) {
+        document.querySelectorAll('.game-tab-btn').forEach(b => { b.classList.toggle('btn-primary', b.id === `gameBtn-${g}`); b.classList.toggle('liquid-glass', b.id !== `gameBtn-${g}`); });
+        const stage = document.getElementById('gameStage');
+        if (g === 'memory') {
+          const icons = ['🏛️', '👑', '⚔️', '📜', '🧭', '🏺'], cards = [...icons, ...icons].sort(() => Math.random() - 0.5);
+          stage.innerHTML = `<div class="grid grid-cols-4 gap-2 max-w-xs mx-auto">${cards.map((ic) => `<button type="button" onclick="this.textContent='${ic}'" class="aspect-square rounded-2xl liquid-glass text-2xl">❓</button>`).join('')}</div>`;
+        } else if (g === 'tictactoe') {
+          stage.innerHTML = `<div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">${Array(9).fill('').map(() => `<button type="button" onclick="if(!this.textContent)this.textContent='X'" class="aspect-square rounded-2xl liquid-glass text-2xl font-black"></button>`).join('')}</div>`;
+        } else {
+          stage.innerHTML = `<div class="max-w-md mx-auto text-center space-y-3"><div class="p-3 rounded-2xl bg-slate-900 text-white text-xs font-bold">التاريخ هو ذاكرة الأمم ومفتاح فهم الحاضر</div><input type="text" placeholder="اكتب العبارة السابقة بسرعة..." class="w-full px-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-theme text-xs font-bold" /></div>`;
+        }
+      };
+
+      // 15. Full RTL Admin Dashboard
+      const ADMIN_MENU_ITEMS = [
+        { id: 'overview', label: 'نظرة عامة', icon: 'fa-chart-pie' },
+        { id: 'center_attendance', label: 'حضور السنتر وكارت الطالب', icon: 'fa-qrcode' },
+        { id: 'payments', label: 'المدفوعات والمحفظة', icon: 'fa-wallet' },
+        { id: 'users', label: 'المستخدمين والطلاب (تحكم كامل)', icon: 'fa-user-graduate' },
+        { id: 'courses', label: 'إدارة الكورسات والامتحانات', icon: 'fa-book-open' },
+        { id: 'teachers', label: 'إدارة المعلمين (بالصور)', icon: 'fa-chalkboard-user' },
+        { id: 'codes', label: 'أكواد الشحن والكورسات', icon: 'fa-ticket' },
+        { id: 'groups', label: 'مجموعات السنتر', icon: 'fa-users-rectangle' },
+        { id: 'appearance', label: 'تخصيص الألوان والصورة', icon: 'fa-palette' },
+        { id: 'settings', label: 'إعدادات المنصة', icon: 'fa-gear' }
+      ];
+
+      window.toggleAdminSidebar = function (open) {
+        document.getElementById('adminSidebar').classList.toggle('translate-x-full', !open);
+        document.getElementById('adminSidebarBackdrop').classList.toggle('hidden', !open);
+      };
+
+      function renderAdminNav() {
+        const pendingPayCount = (appState.paymentRequests || []).filter(p => p.status === 'pending').length;
+        document.getElementById('adminNavMenu').innerHTML = ADMIN_MENU_ITEMS.map(item => {
+          const active = item.id === currentAdminSection;
+          const badge = (item.id === 'payments' && pendingPayCount > 0) ? `<span class="mr-auto px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black">${pendingPayCount}</span>` : '';
+          return `<button type="button" onclick="selectAdminSection('${item.id}')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-right transition ${active ? 'btn-primary shadow-md' : 'hover:bg-theme-soft text-slate-700 dark:text-slate-200'}"><i class="fa-solid ${item.icon} w-5 text-center ${active ? 'text-white' : 'text-theme'}"></i><span class="truncate">${item.label}</span>${badge}</button>`;
+        }).join('');
+      }
+
+      window.selectAdminSection = function (id) {
+        if (!isAuthorizedAdmin()) { logoutUser(); return; }
+        currentAdminSection = id;
+        const item = ADMIN_MENU_ITEMS.find(m => m.id === id);
+        document.getElementById('adminSectionTitle').textContent = item ? item.label : 'لوحة التحكم';
+        renderAdminNav();
+        renderAdminSection(id);
+        toggleAdminSidebar(false);
+      };
+
+      let selectedCardStudentId = '', newTeacherPhotoBase64 = '';
+
+      // Helper: Render Filtered Students List for Admin
+      function getFilteredStudentsList() {
+        const q = studentSearchQuery.trim().toLowerCase();
+        return appState.students.filter(st => {
+          const matchesGrade = studentGradeFilter === 'all' || st.grade === studentGradeFilter;
+          if (!matchesGrade) return false;
+          if (!q) return true;
+          const phoneMatch = String(st.phone || '').toLowerCase().includes(q);
+          const parentPhoneMatch = String(st.parentPhone || '').toLowerCase().includes(q);
+          const codeMatch = String(st.studentCode || '').toLowerCase().includes(q);
+          const nameMatch = String(st.name || '').toLowerCase().includes(q);
+          return phoneMatch || parentPhoneMatch || codeMatch || nameMatch;
+        });
+      }
+
+      function renderStudentsCardsHtml() {
+        const list = getFilteredStudentsList();
+        const counterEl = document.getElementById('filteredStudentsCounter');
+        if (counterEl) counterEl.textContent = `عرض ${list.length} من إجمالي ${appState.students.length} طالب`;
+
+        if (!list.length) {
+          return `<div class="liquid-glass rounded-3xl p-8 text-center text-xs sm:text-sm font-bold text-slate-500">لا يوجد طلاب مطابقون لنتيجة البحث الحالية.</div>`;
+        }
+
+        return list.map(st => `
+          <div class="liquid-glass rounded-3xl p-4 sm:p-5 space-y-3 border border-slate-200/50 dark:border-slate-800">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-lg bg-slate-900 text-sky-400 font-mono text-xs font-black">${escapeHtml(st.studentCode)}</span>
+                  <strong class="text-base">${escapeHtml(st.name)}</strong>
+                  <span class="px-2.5 py-0.5 rounded-full bg-theme-soft text-theme text-[11px] font-extrabold">${escapeHtml(getGradeLabel(st.grade))}</span>
+                  ${st.suspended ? `<span class="px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-500 text-[11px] font-black">موقوف</span>` : ''}
+                </div>
+                <div class="text-xs text-slate-500 mt-1.5 flex flex-wrap gap-x-4 gap-y-1 font-bold">
+                  <span><i class="fa-solid fa-phone text-theme ml-1"></i> هاتف الطالب: <strong class="text-slate-800 dark:text-slate-200 font-mono">${escapeHtml(st.phone)}</strong></span>
+                  <span><i class="fa-solid fa-user-shield text-amber-500 ml-1"></i> ولي الأمر: <strong class="font-mono">${escapeHtml(st.parentPhone || '-')}</strong></span>
+                  <span><i class="fa-solid fa-wallet text-emerald-500 ml-1"></i> المحفظة: <strong class="text-emerald-500">${Number(st.walletBalance || 0)} ج.م</strong></span>
+                  <span><i class="fa-solid fa-book text-purple-500 ml-1"></i> الكورسات المفعلة: <strong>${(st.enrolledCourses || []).length}</strong></span>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="openEditStudentModal('${escapeHtml(st.id)}')" class="btn-primary px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5">
+                  <i class="fa-solid fa-pen-to-square"></i><span>تعديل البيانات</span>
+                </button>
+                <select onchange="updateStudentMaxDevices('${escapeHtml(st.id)}', this.value)" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                  <option value="1" ${Number(st.maxDevices) === 1 ? 'selected' : ''}>1 جهاز</option>
+                  <option value="2" ${Number(st.maxDevices || 2) === 2 ? 'selected' : ''}>2 جهاز</option>
+                  <option value="3" ${Number(st.maxDevices) === 3 ? 'selected' : ''}>3 أجهزة</option>
+                </select>
+                <button type="button" onclick="forceLogoutStudentDevices('${escapeHtml(st.id)}')" class="px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-600 text-xs font-extrabold">إخراجه (${(st.activeDevices || []).length})</button>
+                <button type="button" onclick="toggleSuspendStudent('${escapeHtml(st.id)}')" class="px-3 py-1.5 rounded-xl ${st.suspended ? 'bg-emerald-600 text-white' : 'bg-rose-500/15 text-rose-500'} text-xs font-extrabold">${st.suspended ? 'فك الإيقاف' : 'إيقاف مؤقت'}</button>
+                <button type="button" onclick="adminEnrollAllForStudent('${escapeHtml(st.id)}')" class="px-3 py-1.5 rounded-xl bg-theme-soft text-theme text-xs font-extrabold">فتح الكورسات</button>
+                <button type="button" onclick="adminDeleteStudent('${escapeHtml(st.id)}')" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-extrabold">حذف</button>
+              </div>
+            </div>
+            <form onsubmit="sendStudentNotification(event, '${escapeHtml(st.id)}')" class="flex gap-2">
+              <input name="notifMsg" type="text" required placeholder="إرسال إشعار مباشر للطالب..." class="flex-1 px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              <button type="submit" class="btn-primary px-4 py-2 rounded-xl text-xs font-extrabold">إرسال</button>
+            </form>
+          </div>`).join('');
+      }
+
+      window.handleStudentSearchInput = function (val) {
+        studentSearchQuery = val;
+        const container = document.getElementById('studentsListContainer');
+        if (container) container.innerHTML = renderStudentsCardsHtml();
+      };
+
+      window.handleStudentGradeFilter = function (val) {
+        studentGradeFilter = val;
+        const container = document.getElementById('studentsListContainer');
+        if (container) container.innerHTML = renderStudentsCardsHtml();
+      };
+
+      function renderAdminSection(id) {
+        if (!isAuthorizedAdmin()) return;
+        const main = document.getElementById('adminMainContent');
+
+        if (id === 'overview') {
+          const pendingPays = (appState.paymentRequests || []).filter(p => p.status === 'pending').length;
+          main.innerHTML = `
+            <div class="space-y-6">
+              <div class="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-xs font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-lg"></i>
+                <span>حالة الأمان: المنصة محمية بقواعد Firebase الصارمة + تشفير الروابط + درع منع الـ Inspect.</span>
+              </div>
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="liquid-glass rounded-3xl p-4 sm:p-5"><div class="text-xs font-bold text-slate-500">إجمالي الطلاب</div><div class="text-2xl sm:text-3xl font-black text-theme mt-1">${appState.students.length}</div></div>
+                <div class="liquid-glass rounded-3xl p-4 sm:p-5"><div class="text-xs font-bold text-slate-500">حضور السنتر</div><div class="text-2xl sm:text-3xl font-black text-emerald-500 mt-1">${appState.attendance.length}</div></div>
+                <div class="liquid-glass rounded-3xl p-4 sm:p-5"><div class="text-xs font-bold text-slate-500">طلبات الدفع</div><div class="text-2xl sm:text-3xl font-black text-rose-500 mt-1">${pendingPays}</div></div>
+                <div class="liquid-glass rounded-3xl p-4 sm:p-5"><div class="text-xs font-bold text-slate-500">الكورسات</div><div class="text-2xl sm:text-3xl font-black text-purple-500 mt-1">${appState.courses.length}</div></div>
+              </div>
+            </div>`;
+        }
+        else if (id === 'center_attendance') {
+          if (!selectedCardStudentId && appState.students.length) selectedCardStudentId = appState.students[0].id;
+          const cardStudent = appState.students.find(s => s.id === selectedCardStudentId) || appState.students[0];
+          main.innerHTML = `
+            <div class="space-y-6">
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-7 liquid-glass rounded-3xl p-5 sm:p-6 space-y-4">
+                  <h3 class="text-base sm:text-lg font-black"><i class="fa-solid fa-qrcode text-theme ml-1"></i> تسجيل حضور السنتر وفتح الحصة تلقائياً</h3>
+                  <form onsubmit="processCenterAttendanceScan(event)" class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <input id="scanStudentCodeInput" type="text" required autofocus placeholder="كود الطالب (HOOT-1001)" class="px-4 py-3 rounded-2xl bg-white/90 dark:bg-slate-900 border-2 border-theme font-mono text-sm font-black uppercase" />
+                      <select id="scanGroupSelect" class="px-4 py-3 rounded-2xl bg-white/90 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">${appState.groups.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`).join('')}</select>
+                    </div>
+                    <select id="scanUnlockCourseSelect" class="w-full px-4 py-3 rounded-2xl bg-white/90 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">${appState.courses.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.title)}</option>`).join('')}</select>
+                    <button type="submit" class="btn-primary w-full py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold">تسجيل حضور السنتر + فتح الحصة فوراً</button>
+                  </form>
+                </div>
+                <div class="lg:col-span-5 liquid-glass rounded-3xl p-5 sm:p-6 space-y-4">
+                  <div class="flex items-center justify-between gap-2">
+                    <h3 class="text-base font-black">طباعة كارت الطالب</h3>
+                    <select onchange="window._setCardStudent(this.value)" class="px-3 py-1.5 rounded-xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold max-w-[170px]">${appState.students.map(st => `<option value="${escapeHtml(st.id)}" ${cardStudent && st.id === cardStudent.id ? 'selected' : ''}>${escapeHtml(st.name)}</option>`).join('')}</select>
+                  </div>
+                  ${cardStudent ? `
+                    <div id="printableStudentCardArea" class="rounded-3xl p-5 bg-gradient-to-br from-slate-900 via-sky-950 to-slate-900 text-white border-2 border-sky-400/50 space-y-2">
+                      <div class="text-sm font-black text-sky-400">${escapeHtml(appState.settings.platformName)} — ${escapeHtml(appState.settings.supervisor)}</div>
+                      <div class="flex items-center justify-between gap-3 pt-1">
+                        <div class="space-y-1 text-xs">
+                          <div class="font-black text-base">${escapeHtml(cardStudent.name)}</div>
+                          <div>الصف: <strong>${escapeHtml(getGradeLabel(cardStudent.grade))}</strong></div>
+                          <div>الكود: <span class="font-mono font-black text-sky-300">${escapeHtml(cardStudent.studentCode)}</span></div>
+                        </div>
+                        <div>${generateMiniQrSvg(cardStudent.studentCode)}</div>
+                      </div>
+                    </div>
+                    <button type="button" onclick="window.print()" class="btn-primary w-full py-3 rounded-2xl text-xs font-extrabold"><i class="fa-solid fa-print ml-1"></i> طباعة الكارت</button>` : ''}
+                </div>
+              </div>
+            </div>`;
+        }
+        else if (id === 'payments') {
+          const s = appState.settings;
+          main.innerHTML = `
+            <div class="space-y-6">
+              <form onsubmit="savePaymentGatewaySettings(event)" class="liquid-glass rounded-3xl p-5 sm:p-6 space-y-4">
+                <h3 class="text-base font-black text-theme">أرقام استقبال المدفوعات</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input id="cfgVodafoneNum" type="text" required value="${escapeHtml(s.vodafoneCashNumber)}" placeholder="فودافون كاش" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-black" />
+                  <input id="cfgInstapayAddr" type="text" required value="${escapeHtml(s.instapayAddress)}" placeholder="عنوان إنستا باي" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-black" />
+                  <input id="cfgInstapayPhone" type="text" required value="${escapeHtml(s.instapayPhone)}" placeholder="رقم إنستا باي" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-black" />
+                </div>
+                <button type="submit" class="btn-primary px-6 py-2.5 rounded-2xl text-xs font-extrabold">حفظ</button>
+              </form>
+              <div class="liquid-glass rounded-3xl p-5 sm:p-6 overflow-x-auto">
+                <h3 class="text-base font-black mb-4">طلبات الدفع الواردة (${appState.paymentRequests.length})</h3>
+                <table class="w-full text-right text-xs">
+                  <thead><tr class="border-b border-slate-200 dark:border-slate-800 text-slate-500"><th class="py-2 px-2">الطالب</th><th class="py-2 px-2">الوسيلة</th><th class="py-2 px-2">المحوّل</th><th class="py-2 px-2">المبلغ</th><th class="py-2 px-2">الإجراء</th></tr></thead>
+                  <tbody>
+                    ${appState.paymentRequests.map(req => `
+                      <tr class="border-b border-slate-200/40 dark:border-slate-800/40">
+                        <td class="py-3 px-2 font-black">${escapeHtml(req.studentName)} (${escapeHtml(req.studentCode)})</td>
+                        <td class="py-3 px-2">${escapeHtml(req.method)}</td>
+                        <td class="py-3 px-2 font-mono">${escapeHtml(req.senderInfo)}</td>
+                        <td class="py-3 px-2 font-black text-emerald-500">${Number(req.amount)} ج.م</td>
+                        <td class="py-3 px-2">${req.status === 'pending' ? `<button type="button" onclick="confirmStudentPayment('${escapeHtml(req.id)}', true)" class="px-3 py-1 rounded-xl bg-emerald-600 text-white font-extrabold">تأكيد</button> <button type="button" onclick="confirmStudentPayment('${escapeHtml(req.id)}', false)" class="px-2.5 py-1 rounded-xl bg-rose-500/15 text-rose-500 font-extrabold">رفض</button>` : escapeHtml(req.status)}</td>
+                      </tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>`;
+        }
+        else if (id === 'users') {
+          main.innerHTML = `
+            <div class="space-y-4">
+              <!-- Search & Filter Bar -->
+              <div class="liquid-glass rounded-3xl p-4 sm:p-5 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <h3 class="text-base font-black"><i class="fa-solid fa-magnifying-glass text-theme ml-1.5"></i> البحث السريع وإدارة الطلاب</h3>
+                  <span id="filteredStudentsCounter" class="px-3 py-1 rounded-full bg-theme-soft text-theme text-xs font-black">عرض ${getFilteredStudentsList().length} من إجمالي ${appState.students.length} طالب</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                  <div class="sm:col-span-8 relative">
+                    <i class="fa-solid fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input id="adminStudentSearchInput" type="text" value="${escapeHtml(studentSearchQuery)}" oninput="handleStudentSearchInput(this.value)" placeholder="ابحث برقم تليفون الطالب، رقم ولي الأمر، كود الطالب (HOOT-1001)، أو الاسم..." class="w-full pr-10 pl-4 py-3 rounded-2xl bg-white/90 dark:bg-slate-900 border-2 border-theme/50 focus:border-theme outline-none text-xs sm:text-sm font-bold" />
+                  </div>
+                  <div class="sm:col-span-4 flex items-center gap-2">
+                    <select onchange="handleStudentGradeFilter(this.value)" class="flex-1 px-4 py-3 rounded-2xl bg-white/90 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-extrabold">
+                      <option value="all" ${studentGradeFilter === 'all' ? 'selected' : ''}>كل الصفوف الدراسية</option>
+                      ${appState.grades.map(g => `<option value="${escapeHtml(g.id)}" ${studentGradeFilter === g.id ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('')}
+                    </select>
+                    ${studentSearchQuery ? `<button type="button" onclick="studentSearchQuery=''; document.getElementById('adminStudentSearchInput').value=''; handleStudentSearchInput('');" class="px-3.5 py-3 rounded-2xl bg-rose-500/15 text-rose-500 text-xs font-extrabold">مسح</button>` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Students Cards Container -->
+              <div id="studentsListContainer" class="space-y-4">
+                ${renderStudentsCardsHtml()}
+              </div>
+            </div>`;
+        }
+        else if (id === 'courses') {
+          main.innerHTML = `
+            <div class="space-y-6">
+              <div class="liquid-glass rounded-3xl p-5 sm:p-6">
+                <h3 class="text-base font-black mb-3">إضافة كورس / حصة جديدة</h3>
+                <form onsubmit="adminAddCourse(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input id="newCourseTitle" type="text" required placeholder="عنوان الكورس *" class="sm:col-span-2 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                  <select id="newCourseGrade" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">${appState.grades.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`).join('')}</select>
+                  <input id="newCoursePrice" type="number" min="0" value="150" required placeholder="السعر *" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                  <input id="newCoursePdf" type="url" placeholder="رابط ملزمة PDF" class="sm:col-span-2 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                  <textarea id="newCourseDesc" rows="2" required placeholder="وصف الكورس *" class="sm:col-span-3 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold"></textarea>
+                  <button type="submit" class="sm:col-span-3 btn-primary py-3 rounded-2xl text-xs font-extrabold">حفظ الكورس</button>
+                </form>
+              </div>
+              ${appState.courses.map(c => `
+                <div class="liquid-glass rounded-3xl p-5 space-y-4">
+                  <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-800">
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full bg-theme-soft text-theme text-[11px] font-extrabold">${escapeHtml(getGradeLabel(c.gradeId))}</span>
+                        <h4 class="text-base font-black">${escapeHtml(c.title)}</h4>
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 text-xs font-black">${Number(c.price)} ج.م</span>
+                        ${c.published === false ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 text-[11px] font-black">مخفي</span>` : ''}
+                      </div>
+                      <p class="text-xs text-slate-500 mt-1">${escapeHtml(c.description || '')}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button type="button" onclick="openEditCourseModal('${escapeHtml(c.id)}')" class="btn-primary px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-to-square"></i><span>تعديل الكورس</span>
+                      </button>
+                      <button type="button" onclick="adminDeleteCourseById('${escapeHtml(c.id)}')" class="px-3 py-1.5 rounded-xl bg-rose-500/15 text-rose-500 text-xs font-extrabold">حذف الكورس</button>
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <div class="text-xs font-black text-slate-500">محاضرات الكورس (${(c.lessons || []).length}):</div>
+                    ${(c.lessons || []).map((l, idx) => `
+                      <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 dark:bg-slate-900 text-xs">
+                        <div class="flex items-center gap-2">
+                          <span class="font-bold">${idx + 1}. ${escapeHtml(l.title)}</span>
+                          ${l.isFree ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 text-[10px] font-black">مجانية</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button type="button" onclick="openEditLessonModal('${escapeHtml(c.id)}', '${escapeHtml(l.id)}')" class="px-2.5 py-1 rounded-lg bg-theme-soft text-theme font-extrabold">تعديل</button>
+                          <button type="button" onclick="adminDeleteLessonById('${escapeHtml(c.id)}', '${escapeHtml(l.id)}')" class="px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-500 font-bold">حذف</button>
+                        </div>
+                      </div>`).join('')}
+                    <form onsubmit="adminAddLessonById(event, '${escapeHtml(c.id)}')" class="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-2">
+                      <input name="lTitle" type="text" required placeholder="عنوان المحاضرة الجديدة" class="sm:col-span-5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                      <input name="lUrl" type="url" required placeholder="رابط الفيديو (سيتم تشفيره تلقائياً)" class="sm:col-span-5 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                      <div class="sm:col-span-2 flex items-center justify-between"><label class="text-[11px] font-bold"><input name="lFree" type="checkbox" /> مجاني</label><button type="submit" class="btn-primary px-3 py-2 rounded-xl text-xs font-extrabold">+</button></div>
+                    </form>
+                  </div>
+                </div>`).join('')}
+            </div>`;
+        }
+        else if (id === 'teachers') {
+          main.innerHTML = `
+            <div class="space-y-6 max-w-4xl">
+              <form onsubmit="adminAddTeacher(event)" class="liquid-glass rounded-3xl p-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input id="tNewName" type="text" required placeholder="اسم المعلم *" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                <input id="tNewRole" type="text" required placeholder="اللقب / المادة *" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                <input id="tNewPhone" type="tel" required placeholder="رقم الواتساب *" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                <input type="file" accept="image/*" onchange="handleNewTeacherPhoto(event)" class="text-xs" />
+                <textarea id="tNewBio" rows="2" placeholder="نبذة تعريفية..." class="sm:col-span-2 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold"></textarea>
+                <button type="submit" class="sm:col-span-2 btn-primary py-3 rounded-2xl text-xs font-extrabold">إضافة المعلم</button>
+              </form>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                ${appState.teachers.map(t => `<div class="liquid-glass rounded-3xl p-4 flex items-center justify-between gap-3"><div class="flex items-center gap-3"><img src="${sanitizeUrl(t.photo)}" class="w-14 h-14 rounded-2xl object-cover" /><div><div class="text-sm font-black">${escapeHtml(t.name)}</div><div class="text-xs text-theme">${escapeHtml(t.role)}</div></div></div><button type="button" onclick="adminDeleteTeacher('${escapeHtml(t.id)}')" class="px-3 py-1.5 rounded-xl bg-rose-500/15 text-rose-500 text-xs font-extrabold">حذف</button></div>`).join('')}
+              </div>
+            </div>`;
+        }
+        else if (id === 'codes') {
+          main.innerHTML = `
+            <div class="space-y-6">
+              <form onsubmit="adminGenerateCodes(event)" class="liquid-glass rounded-3xl p-6 grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <select id="codeTypeSelect" onchange="document.getElementById('codeWalletAmtWrap').classList.toggle('hidden', this.value !== 'wallet'); document.getElementById('codeCourseWrap').classList.toggle('hidden', this.value === 'wallet');" class="px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-extrabold">
+                  <option value="course">كود تفعيل كورس</option>
+                  <option value="wallet">كود شحن محفظة</option>
+                </select>
+                <input id="codePrefix" type="text" value="HOOT" required class="px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-extrabold uppercase" />
+                <input id="codeCount" type="number" min="1" max="100" value="10" required class="px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-extrabold" />
+                <div id="codeCourseWrap"><select id="codeCourseTarget" class="w-full px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-extrabold"><option value="all">جميع الكورسات</option>${appState.courses.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.title)}</option>`).join('')}</select></div>
+                <div id="codeWalletAmtWrap" class="hidden"><input id="codeWalletAmount" type="number" min="5" value="100" class="w-full px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-extrabold" /></div>
+                <button type="submit" class="btn-primary py-3 px-5 rounded-2xl text-xs font-extrabold">توليد الأكواد</button>
+              </form>
+              <div class="liquid-glass rounded-3xl p-5 overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                  <thead><tr class="border-b border-slate-200 dark:border-slate-800 text-slate-500"><th class="py-2 px-2">الكود</th><th class="py-2 px-2">القيمة</th><th class="py-2 px-2">الحالة</th><th class="py-2 px-2">إجراءات</th></tr></thead>
+                  <tbody>
+                    ${appState.codes.map(c => `<tr class="border-b border-slate-200/40 dark:border-slate-800/40"><td class="py-2.5 px-2 font-mono font-black text-theme">${escapeHtml(c.code)}</td><td class="py-2.5 px-2">${c.type === 'wallet' ? c.walletAmount + ' ج.م' : 'كورس'}</td><td class="py-2.5 px-2">${c.usedBy ? escapeHtml(c.usedBy) : '<span class="text-emerald-500 font-bold">متاح</span>'}</td><td class="py-2.5 px-2"><button type="button" onclick="copyTextFallback('${escapeHtml(c.code)}')" class="px-2 py-1 rounded bg-theme-soft text-theme font-bold">نسخ</button> <button type="button" onclick="deleteCodeByValue('${escapeHtml(c.code)}')" class="px-2 py-1 rounded bg-rose-500/15 text-rose-500 font-bold">حذف</button></td></tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>`;
+        }
+        else if (id === 'groups') {
+          main.innerHTML = `
+            <div class="space-y-6 max-w-3xl">
+              <form onsubmit="adminAddGroup(event)" class="liquid-glass rounded-3xl p-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input id="gNewName" type="text" required placeholder="اسم المجموعة" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                <select id="gNewGrade" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">${appState.grades.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`).join('')}</select>
+                <input id="gNewDays" type="text" required placeholder="المواعيد" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                <button type="submit" class="sm:col-span-3 btn-primary py-2.5 rounded-2xl text-xs font-extrabold">إضافة المجموعة</button>
+              </form>
+              ${appState.groups.map(g => `<div class="liquid-glass rounded-2xl p-4 flex items-center justify-between"><div><div class="text-sm font-black">${escapeHtml(g.name)}</div><div class="text-xs text-slate-500">${escapeHtml(g.days)}</div></div><button type="button" onclick="adminDeleteGroup('${escapeHtml(g.id)}')" class="px-3 py-1.5 rounded-xl bg-rose-500/15 text-rose-500 text-xs font-extrabold">حذف</button></div>`).join('')}
+            </div>`;
+        }
+        else if (id === 'appearance') {
+          main.innerHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="liquid-glass rounded-3xl p-6 space-y-4">
+                <h3 class="text-base font-black">سمات الألوان</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${THEME_PRESETS.map(t => `<button type="button" onclick="selectAdminTheme('${t.id}', '${t.primary}')" class="p-3 rounded-2xl liquid-glass text-right flex items-center gap-2"><span class="w-5 h-5 rounded-full" style="background:${t.primary}"></span><span class="text-xs font-extrabold">${t.name}</span></button>`).join('')}</div>
+              </div>
+              <div class="liquid-glass rounded-3xl p-6 space-y-4"><h3 class="text-base font-black">صورة المعلم الرئيسية</h3><input type="file" accept="image/*" onchange="handleTeacherImageUpload(event)" class="text-xs w-full" /></div>
+            </div>`;
+        }
+        else if (id === 'settings') {
+          const s = appState.settings;
+          main.innerHTML = `
+            <form onsubmit="savePlatformSettings(event)" class="liquid-glass rounded-3xl p-6 space-y-4 max-w-3xl">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input id="setPlatName" type="text" value="${escapeHtml(s.platformName)}" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                <input id="setPlatSup" type="text" value="${escapeHtml(s.supervisor)}" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                <input id="setPlatWa" type="text" value="${escapeHtml(s.whatsapp)}" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                <input id="setPlatAnn" type="text" value="${escapeHtml(s.announcement)}" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+              <button type="submit" class="btn-primary px-6 py-3 rounded-2xl text-xs font-extrabold">حفظ الإعدادات</button>
+            </form>`;
+        }
+      }
+
+      window._setCardStudent = function (val) { selectedCardStudentId = val; renderAdminSection('center_attendance'); };
+
+      // 16. Admin Actions (Including Edit Course, Edit Lesson & Edit Student)
+      window.openEditCourseModal = function (courseId) {
+        const course = appState.courses.find(c => c.id === courseId);
+        if (!course) return;
+        document.getElementById('adminEditModalTitle').textContent = `تعديل الكورس: ${course.title}`;
+        document.getElementById('adminEditModalBody').innerHTML = `
+          <form onsubmit="saveEditedCourse(event, '${escapeHtml(course.id)}')" class="space-y-3">
+            <div>
+              <label class="block text-xs font-extrabold mb-1">عنوان الكورس *</label>
+              <input id="editCourseTitle" type="text" required value="${escapeHtml(course.title)}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-extrabold mb-1">الصف الدراسي *</label>
+                <select id="editCourseGrade" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                  ${appState.grades.map(g => `<option value="${escapeHtml(g.id)}" ${course.gradeId === g.id ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-extrabold mb-1">السعر (ج.م) *</label>
+                <input id="editCoursePrice" type="number" min="0" required value="${Number(course.price || 0)}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-extrabold mb-1">رابط ملزمة PDF</label>
+              <input id="editCoursePdf" type="url" value="${escapeHtml(course.pdfUrl || '')}" placeholder="https://..." class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-xs font-extrabold mb-1">وصف الكورس *</label>
+              <textarea id="editCourseDesc" rows="3" required class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">${escapeHtml(course.description || '')}</textarea>
+            </div>
+            <label class="flex items-center gap-2 text-xs font-extrabold cursor-pointer">
+              <input id="editCoursePublished" type="checkbox" ${course.published !== false ? 'checked' : ''} />
+              <span>نشر الكورس وعرضه للطلاب على المنصة</span>
+            </label>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal('adminEditModal')" class="px-4 py-2.5 rounded-2xl liquid-glass text-xs font-extrabold">إلغاء</button>
+              <button type="submit" class="btn-primary px-6 py-2.5 rounded-2xl text-xs font-extrabold">حفظ التعديلات</button>
+            </div>
+          </form>`;
+        openModal('adminEditModal');
+      };
+
+      window.saveEditedCourse = async function (e, courseId) {
+        e.preventDefault();
+        const course = appState.courses.find(c => c.id === courseId);
+        if (!course) return;
+        course.title = document.getElementById('editCourseTitle').value.trim();
+        course.gradeId = document.getElementById('editCourseGrade').value;
+        course.price = Number(document.getElementById('editCoursePrice').value);
+        course.pdfUrl = document.getElementById('editCoursePdf').value.trim();
+        course.description = document.getElementById('editCourseDesc').value.trim();
+        course.published = document.getElementById('editCoursePublished').checked;
+        await savePublicNode();
+        closeModal('adminEditModal');
+        renderAdminSection('courses');
+        showToast('تم حفظ تعديلات الكورس بنجاح!', 'success');
+      };
+
+      window.openEditLessonModal = function (courseId, lessonId) {
+        const course = appState.courses.find(c => c.id === courseId);
+        const lesson = (course?.lessons || []).find(l => l.id === lessonId);
+        if (!course || !lesson) return;
+        const decodedUrl = decodeMediaRef(lesson.videoUrl);
+        document.getElementById('adminEditModalTitle').textContent = `تعديل المحاضرة: ${lesson.title}`;
+        document.getElementById('adminEditModalBody').innerHTML = `
+          <form onsubmit="saveEditedLesson(event, '${escapeHtml(courseId)}', '${escapeHtml(lessonId)}')" class="space-y-3">
+            <div>
+              <label class="block text-xs font-extrabold mb-1">عنوان المحاضرة *</label>
+              <input id="editLessonTitle" type="text" required value="${escapeHtml(lesson.title)}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-xs font-extrabold mb-1">رابط الفيديو *</label>
+              <input id="editLessonUrl" type="url" required value="${escapeHtml(decodedUrl)}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+            </div>
+            <label class="flex items-center gap-2 text-xs font-extrabold cursor-pointer">
+              <input id="editLessonFree" type="checkbox" ${lesson.isFree ? 'checked' : ''} />
+              <span>محاضرة مجانية متاحة للمعاينة قبل الاشتراك</span>
+            </label>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal('adminEditModal')" class="px-4 py-2.5 rounded-2xl liquid-glass text-xs font-extrabold">إلغاء</button>
+              <button type="submit" class="btn-primary px-6 py-2.5 rounded-2xl text-xs font-extrabold">حفظ المحاضرة</button>
+            </div>
+          </form>`;
+        openModal('adminEditModal');
+      };
+
+      window.saveEditedLesson = async function (e, courseId, lessonId) {
+        e.preventDefault();
+        const course = appState.courses.find(c => c.id === courseId);
+        const lesson = (course?.lessons || []).find(l => l.id === lessonId);
+        if (!lesson) return;
+        lesson.title = document.getElementById('editLessonTitle').value.trim();
+        lesson.videoUrl = encodeMediaRef(document.getElementById('editLessonUrl').value.trim());
+        lesson.isFree = document.getElementById('editLessonFree').checked;
+        await savePublicNode();
+        closeModal('adminEditModal');
+        renderAdminSection('courses');
+        showToast('تم تعديل المحاضرة وتشفير رابطها بنجاح!', 'success');
+      };
+
+      window.openEditStudentModal = function (studentId) {
+        const st = appState.students.find(s => s.id === studentId);
+        if (!st) return;
+        document.getElementById('adminEditModalTitle').textContent = `تعديل بيانات الطالب (${st.studentCode})`;
+        document.getElementById('adminEditModalBody').innerHTML = `
+          <form onsubmit="saveEditedStudent(event, '${escapeHtml(st.id)}')" class="space-y-3">
+            <div>
+              <label class="block text-xs font-extrabold mb-1">اسم الطالب بالكامل *</label>
+              <input id="editStName" type="text" required value="${escapeHtml(st.name)}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-extrabold mb-1">رقم تليفون الطالب *</label>
+                <input id="editStPhone" type="tel" required value="${escapeHtml(st.phone)}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+              <div>
+                <label class="block text-xs font-extrabold mb-1">رقم ولي الأمر</label>
+                <input id="editStParentPhone" type="tel" value="${escapeHtml(st.parentPhone || '')}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-extrabold mb-1">الصف الدراسي *</label>
+                <select id="editStGrade" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                  ${appState.grades.map(g => `<option value="${escapeHtml(g.id)}" ${st.grade === g.id ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-extrabold mb-1">رصيد المحفظة (ج.م) *</label>
+                <input id="editStWallet" type="number" min="0" required value="${Number(st.walletBalance || 0)}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-black text-emerald-600" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-extrabold mb-1">تعيين كلمة مرور جديدة للطالب (اتركها فارغة للإبقاء على الحالية)</label>
+              <input id="editStNewPassword" type="text" placeholder="اكتب كلمة المرور الجديدة إذا نسيها الطالب..." class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal('adminEditModal')" class="px-4 py-2.5 rounded-2xl liquid-glass text-xs font-extrabold">إلغاء</button>
+              <button type="submit" class="btn-primary px-6 py-2.5 rounded-2xl text-xs font-extrabold">حفظ التعديلات</button>
+            </div>
+          </form>`;
+        openModal('adminEditModal');
+      };
+
+      window.saveEditedStudent = async function (e, studentId) {
+        e.preventDefault();
+        const st = appState.students.find(s => s.id === studentId);
+        if (!st) return;
+        const newPhone = document.getElementById('editStPhone').value.trim();
+        if (appState.students.some(other => other.id !== studentId && other.phone === newPhone)) {
+          showToast('رقم الهاتف الجديد مسجل لطالب آخر بالفعل!', 'error');
+          return;
+        }
+        st.name = document.getElementById('editStName').value.trim();
+        st.phone = newPhone;
+        st.parentPhone = document.getElementById('editStParentPhone').value.trim();
+        st.grade = document.getElementById('editStGrade').value;
+        st.walletBalance = Number(document.getElementById('editStWallet').value);
+        const newPass = document.getElementById('editStNewPassword').value.trim();
+        if (newPass) {
+          if (newPass.length < 4) { showToast('كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل', 'error'); return; }
+          st.password = await hashSecret(newPass);
+        }
+        await saveStudentRecord(st);
+        closeModal('adminEditModal');
+        renderAdminSection('users');
+        showToast(`تم تحديث بيانات الطالب ${st.name} بنجاح!`, 'success');
+      };
+
+      window.processCenterAttendanceScan = async function (e) {
+        e.preventDefault();
+        const codeInput = document.getElementById('scanStudentCodeInput').value.trim().toUpperCase();
+        const groupId = document.getElementById('scanGroupSelect').value;
+        const unlockCourseId = document.getElementById('scanUnlockCourseSelect').value;
+        const student = appState.students.find(s => s.studentCode.toUpperCase() === codeInput || s.phone === codeInput);
+        if (!student) { showToast(`لم يتم العثور على طالب بالكود (${codeInput})`, 'error'); return; }
+        const group = appState.groups.find(g => g.id === groupId);
+        const course = appState.courses.find(c => c.id === unlockCourseId);
+        student.groupId = groupId;
+        if (course && !student.enrolledCourses.includes(course.id)) student.enrolledCourses.push(course.id);
+        student.notifications.unshift({ id: 'n_' + Date.now(), text: `تم تسجيل حضورك في السنتر وتم فتح «${course ? course.title : 'الحصة'}» لك تلقائياً!`, date: new Date().toLocaleDateString('ar-EG'), read: false });
+        await saveStudentRecord(student);
+        appState.attendance.unshift({ id: 'att_' + Date.now(), studentCode: student.studentCode, studentName: student.name, groupName: group ? group.name : 'مجموعة', unlockedCourseTitle: course ? course.title : 'حصة', date: new Date().toLocaleString('ar-EG', { hour12: true }) });
+        await saveAdminOnlyNode();
+        showToast(`✓ تم تحضير ${student.name} وفتح الحصة فوراً!`, 'success');
+        renderAdminSection('center_attendance');
+      };
+
+      window.savePaymentGatewaySettings = async function (e) {
+        e.preventDefault();
+        appState.settings.vodafoneCashNumber = document.getElementById('cfgVodafoneNum').value.trim();
+        appState.settings.instapayAddress = document.getElementById('cfgInstapayAddr').value.trim();
+        appState.settings.instapayPhone = document.getElementById('cfgInstapayPhone').value.trim();
+        await savePublicNode();
+        showToast('تم حفظ بيانات استقبال المدفوعات!', 'success');
+      };
+
+      window.confirmStudentPayment = async function (reqId, approve) {
+        const req = appState.paymentRequests.find(r => r.id === reqId);
+        if (!req || req.status !== 'pending') return;
+        const st = appState.students.find(s => s.id === req.studentId);
+        req.status = approve ? 'approved' : 'rejected';
+        await savePaymentRecord(req);
+        if (approve && st) {
+          if (req.targetType === 'wallet') st.walletBalance = Number(st.walletBalance || 0) + Number(req.amount || 0);
+          else if (req.targetType === 'course' && req.targetId && !st.enrolledCourses.includes(req.targetId)) st.enrolledCourses.push(req.targetId);
+          st.notifications.unshift({ id: 'n_' + Date.now(), text: `تم تأكيد عملية الدفع (${req.amount} ج.م): ${req.targetTitle}`, date: new Date().toLocaleDateString('ar-EG'), read: false });
+          await saveStudentRecord(st);
+        }
+        showToast(approve ? 'تم تأكيد الدفع وتحديث حساب الطالب!' : 'تم رفض الطلب', 'info');
+      };
+
+      window.forceLogoutStudentDevices = async function (studentId) {
+        const st = appState.students.find(s => s.id === studentId);
+        if (!st) return;
+        st.activeDevices = [];
+        await saveStudentRecord(st);
+        showToast(`تم تسجيل خروج ${st.name} من جميع الأجهزة!`, 'success');
+      };
+
+      window.updateStudentMaxDevices = async function (studentId, val) {
+        const st = appState.students.find(s => s.id === studentId);
+        if (!st) return;
+        st.maxDevices = Number(val);
+        await saveStudentRecord(st);
+        showToast(`تم تحديث الحد الأقصى للأجهزة إلى ${val}`, 'success');
+      };
+
+      window.toggleSuspendStudent = async function (studentId) {
+        const st = appState.students.find(s => s.id === studentId);
+        if (!st) return;
+        st.suspended = !st.suspended;
+        if (st.suspended) st.activeDevices = [];
+        await saveStudentRecord(st);
+        showToast(st.suspended ? 'تم إيقاف الحساب مؤقتاً' : 'تم إعادة تفعيل الحساب', 'info');
+      };
+
+      window.sendStudentNotification = async function (e, studentId) {
+        e.preventDefault();
+        const st = appState.students.find(s => s.id === studentId);
+        if (!st) return;
+        const msg = e.target.notifMsg.value.trim();
+        st.notifications.unshift({ id: 'n_' + Date.now(), text: msg, date: new Date().toLocaleDateString('ar-EG'), read: false });
+        await saveStudentRecord(st);
+        e.target.reset();
+        showToast('تم إرسال الإشعار للطالب!', 'success');
+      };
+
+      window.adminEnrollAllForStudent = async function (studentId) {
+        const st = appState.students.find(s => s.id === studentId);
+        if (!st) return;
+        st.enrolledCourses = appState.courses.map(c => c.id);
+        await saveStudentRecord(st);
+        showToast('تم فتح جميع الكورسات للطالب', 'success');
+      };
+
+      window.adminDeleteStudent = function (studentId) {
+        showConfirmModal('حذف طالب', 'هل أنت متأكد من حذف الطالب نهائياً؟', async () => {
+          if (firebaseDb) await firebaseDb.ref(`alhoot_students_v4/${studentId}`).remove();
+          showToast('تم حذف الطالب', 'info');
+        });
+      };
+
+      window.handleNewTeacherPhoto = function (e) {
+        const file = e.target.files[0];
+        if (file) compressImageFile(file, 700, (b64) => { newTeacherPhotoBase64 = b64; showToast('تم تجهيز الصورة', 'success'); });
+      };
+      window.adminAddTeacher = async function (e) {
+        e.preventDefault();
+        const name = document.getElementById('tNewName').value.trim();
+        appState.teachers.push({ id: 't_' + Date.now(), name, role: document.getElementById('tNewRole').value.trim(), phone: document.getElementById('tNewPhone').value.trim(), bio: document.getElementById('tNewBio').value.trim(), photo: newTeacherPhotoBase64 || createDefaultTeacherPortrait(name) });
+        newTeacherPhotoBase64 = '';
+        await savePublicNode();
+        showToast('تم إضافة المعلم!', 'success');
+      };
+      window.adminDeleteTeacher = async function (id) {
+        appState.teachers = appState.teachers.filter(t => t.id !== id);
+        await savePublicNode();
+        showToast('تم حذف المعلم', 'info');
+      };
+
+      window.adminAddCourse = async function (e) {
+        e.preventDefault();
+        appState.courses.push({
+          id: 'c_' + Date.now(), title: document.getElementById('newCourseTitle').value.trim(), gradeId: document.getElementById('newCourseGrade').value,
+          price: Number(document.getElementById('newCoursePrice').value), published: true, pdfUrl: document.getElementById('newCoursePdf').value.trim(),
+          description: document.getElementById('newCourseDesc').value.trim(), lessons: [], exams: []
+        });
+        await savePublicNode();
+        showToast('تم إضافة الكورس!', 'success');
+      };
+      window.adminDeleteCourseById = async function (courseId) {
+        appState.courses = appState.courses.filter(c => c.id !== courseId);
+        await savePublicNode();
+        showToast('تم حذف الكورس', 'info');
+      };
+      window.adminAddLessonById = async function (e, courseId) {
+        e.preventDefault();
+        const course = appState.courses.find(c => c.id === courseId);
+        if (!course) return;
+        course.lessons.push({ id: 'l_' + Date.now(), title: e.target.lTitle.value.trim(), videoUrl: encodeMediaRef(e.target.lUrl.value.trim()), isFree: e.target.lFree.checked });
+        await savePublicNode();
+        showToast('تمت إضافة المحاضرة وتشفير رابطها!', 'success');
+      };
+      window.adminDeleteLessonById = async function (courseId, lessonId) {
+        const course = appState.courses.find(c => c.id === courseId);
+        if (!course) return;
+        course.lessons = course.lessons.filter(l => l.id !== lessonId);
+        await savePublicNode();
+      };
+
+      window.adminGenerateCodes = async function (e) {
+        e.preventDefault();
+        const type = document.getElementById('codeTypeSelect').value;
+        const prefix = document.getElementById('codePrefix').value.trim().toUpperCase() || 'HOOT';
+        const count = Math.min(100, Math.max(1, parseInt(document.getElementById('codeCount').value, 10)));
+        const courseId = document.getElementById('codeCourseTarget')?.value || 'all';
+        const walletAmount = Number(document.getElementById('codeWalletAmount')?.value || 100);
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        for (let i = 0; i < count; i++) {
+          let rand = '';
+          for (let j = 0; j < 6; j++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+          await saveCodeRecord({ code: `${prefix}-${rand}`, type, courseId: type === 'course' ? courseId : '', walletAmount: type === 'wallet' ? walletAmount : 0, usedBy: null });
+        }
+        showToast(`تم توليد ${count} كود محصّن على السيرفر!`, 'success');
+      };
+      window.deleteCodeByValue = async function (codeStr) {
+        const key = codeStr.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+        if (firebaseDb) await firebaseDb.ref(`alhoot_codes_v4/${key}`).remove();
+      };
+      window.copyTextFallback = function (text) {
+        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); showToast(`تم النسخ: ${text}`, 'success'); } catch (e) {}
+        document.body.removeChild(ta);
+      };
+
+      window.adminAddGroup = async function (e) {
+        e.preventDefault();
+        appState.groups.push({ id: 'g_' + Date.now(), name: document.getElementById('gNewName').value.trim(), grade: document.getElementById('gNewGrade').value, days: document.getElementById('gNewDays').value.trim() });
+        await savePublicNode();
+        showToast('تم إضافة المجموعة', 'success');
+      };
+      window.adminDeleteGroup = async function (id) {
+        appState.groups = appState.groups.filter(g => g.id !== id);
+        await savePublicNode();
+      };
+      window.selectAdminTheme = async function (themeId, primaryHex) {
+        appState.settings.themeId = themeId; appState.settings.primaryColor = primaryHex;
+        await savePublicNode();
+        showToast('تم تغيير السمة اللونية', 'success');
+      };
+      window.handleTeacherImageUpload = function (e) {
+        const file = e.target.files[0];
+        if (file) compressImageFile(file, 800, async (b64) => { appState.settings.teacherImage = b64; await savePublicNode(); showToast('تم تحديث الصورة', 'success'); });
+      };
+      window.savePlatformSettings = async function (e) {
+        e.preventDefault();
+        appState.settings.platformName = document.getElementById('setPlatName').value.trim();
+        appState.settings.supervisor = document.getElementById('setPlatSup').value.trim();
+        appState.settings.whatsapp = document.getElementById('setPlatWa').value.trim();
+        appState.settings.announcement = document.getElementById('setPlatAnn').value.trim();
+        await savePublicNode();
+        showToast('تم حفظ الإعدادات', 'success');
+      };
+
+      // 17. Bootstrap
+      window.addEventListener('DOMContentLoaded', () => {
+        if (safeGetStorage(localStorage, 'alhoot_dark_mode') === '1') {
+          document.documentElement.classList.add('dark');
+          document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400';
+        }
+        applyBrandingAndTheme();
+        renderPublicSections();
+        initSecuredFirebaseAuth();
+      });
+    })();
+  </script>
+</body>
+</html>
