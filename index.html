@@ -89,11 +89,52 @@
     }
 
     .liquid-card-hover {
-      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
     }
     .liquid-card-hover:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 22px 42px -12px rgba(var(--primary-rgb), 0.24);
+      transform: translateY(-7px);
+      box-shadow: 0 24px 46px -12px rgba(var(--primary-rgb), 0.32);
+    }
+
+    /* Course Cover 1080x1080 Interactive Hover Effects */
+    .course-card-interactive:hover {
+      border-color: rgba(var(--primary-rgb), 0.65);
+    }
+    .course-cover-wrapper {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+    }
+    .course-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), filter 0.45s ease;
+    }
+    .course-card-interactive:hover .course-cover-img {
+      transform: scale(1.09) rotate(1.2deg);
+      filter: brightness(1.05) contrast(1.04);
+    }
+    .course-cover-sheen {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 25%, rgba(255, 255, 255, 0.32) 50%, transparent 75%);
+      transform: translateX(130%);
+      transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .course-card-interactive:hover .course-cover-sheen {
+      transform: translateX(-130%);
+    }
+    .course-cover-overlay {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .course-card-interactive:hover .course-cover-overlay {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     @keyframes marqueeRtl {
@@ -840,6 +881,12 @@
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient></defs><rect width="1080" height="1080" fill="url(#g)"/><rect x="70" y="70" width="940" height="940" rx="64" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="4"/><text x="540" y="340" text-anchor="middle" font-size="150" fill="#ffffff">${emblem}</text><text x="540" y="540" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="900" font-size="76" fill="#ffffff">${title}</text><text x="540" y="630" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="700" font-size="42" fill="rgba(255,255,255,0.88)">${subtitle}</text><text x="540" y="784" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="800" font-size="34" fill="#ffffff">منصة الحوت • مستر أمير أحمد</text></svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
       }
+      function createDefaultCourseCover(title = 'كورس التاريخ', gradeLabel = 'منصة الحوت') {
+        const safeT = String(title || 'كورس التاريخ').slice(0, 26);
+        const safeG = String(gradeLabel || 'منصة الحوت').slice(0, 28);
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080"><defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0284c7"/><stop offset="55%" stop-color="#0f172a"/><stop offset="100%" stop-color="#0369a1"/></linearGradient></defs><rect width="1080" height="1080" fill="url(#cg)"/><circle cx="880" cy="200" r="240" fill="rgba(56,189,248,0.14)"/><circle cx="190" cy="890" r="260" fill="rgba(2,132,199,0.18)"/><rect x="65" y="65" width="950" height="950" rx="68" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="4"/><text x="540" y="345" text-anchor="middle" font-size="145" fill="#ffffff">👑</text><text x="540" y="530" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="900" font-size="64" fill="#ffffff">${safeT}</text><text x="540" y="625" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="800" font-size="40" fill="#38bdf8">${safeG}</text><text x="540" y="845" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="800" font-size="34" fill="rgba(255,255,255,0.85)">منصة الحوت • مستر أمير أحمد</text></svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      }
       function createDefaultTeacherPortrait(label = 'مستر أمير أحمد') {
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0284c7"/><stop offset="100%" stop-color="#0f172a"/></linearGradient></defs><rect width="800" height="800" fill="url(#bg)"/><circle cx="400" cy="310" r="145" fill="rgba(255,255,255,0.14)"/><circle cx="400" cy="285" r="82" fill="#f8fafc"/><path d="M245 565 C245 445, 555 445, 555 565 Z" fill="#f8fafc"/><text x="400" y="690" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="900" font-size="38" fill="#38bdf8">${label}</text></svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -904,6 +951,8 @@
       let activeTeacherSlide = 0;
       let studentSearchQuery = '';
       let studentGradeFilter = 'all';
+      let newCourseCoverBase64 = '';
+      let editCourseCoverBase64 = '';
 
       function toCleanArray(val) {
         if (!val) return [];
@@ -1181,6 +1230,30 @@
         reader.readAsDataURL(file);
       }
 
+      // Auto-crop & resize any uploaded image to exact 1080x1080 square
+      function cropAndResizeSquare1080(file, callback) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const targetSize = 1080;
+            const canvas = document.createElement('canvas');
+            canvas.width = targetSize;
+            canvas.height = targetSize;
+            const ctx = canvas.getContext('2d');
+
+            const minSide = Math.min(img.width, img.height);
+            const sx = Math.floor((img.width - minSide) / 2);
+            const sy = Math.floor((img.height - minSide) / 2);
+
+            ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, targetSize, targetSize);
+            callback(canvas.toDataURL('image/jpeg', 0.82));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
       // 9. Authentication & Student Registration
       window.openAuthModal = function (tab = 'login') { switchAuthTab(tab); openModal('authModal'); };
       window.switchAuthTab = function (tab) {
@@ -1428,25 +1501,53 @@
 
         coursesGrid.innerHTML = filtered.map(c => {
           const lessons = c.lessons || [], exams = c.exams || [], unlocked = isCourseUnlocked(c.id), freeLesson = lessons.find(l => l.isFree);
+          const gradeName = getGradeLabel(c.gradeId);
+          const coverUrl = sanitizeUrl(c.coverImage) !== '#' ? sanitizeUrl(c.coverImage) : createDefaultCourseCover(c.title, gradeName);
           return `
-            <div class="liquid-glass liquid-card-hover rounded-[28px] overflow-hidden flex flex-col justify-between">
-              <div class="p-5">
-                <div class="flex items-center justify-between gap-2 mb-3">
-                  <span class="px-3 py-1 rounded-full bg-theme-soft text-theme text-xs font-extrabold">${escapeHtml(getGradeLabel(c.gradeId))}</span>
-                  ${unlocked ? `<span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-500 text-xs font-black"><i class="fa-solid fa-unlock ml-1"></i> مفتوح لك</span>` : `<span class="text-base font-black text-theme">${Number(c.price)} ج.م</span>`}
+            <div class="course-card-interactive liquid-glass liquid-card-hover rounded-[30px] overflow-hidden flex flex-col justify-between group border border-white/40 dark:border-slate-800">
+              <div>
+                <!-- Square 1080x1080 Course Cover with Interactive Hover Animation -->
+                <div onclick="${unlocked ? `attemptEnterCourse('${escapeHtml(c.id)}')` : (freeLesson ? `openCoursePlayer('${escapeHtml(c.id)}', '${escapeHtml(freeLesson.id)}')` : `purchaseCourseWithWallet('${escapeHtml(c.id)}')`)}" class="course-cover-wrapper bg-slate-900 cursor-pointer">
+                  <img src="${coverUrl}" alt="${escapeHtml(c.title)}" loading="lazy" class="course-cover-img" />
+                  <div class="course-cover-sheen"></div>
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-300"></div>
+
+                  <!-- Top Floating Badges -->
+                  <div class="absolute top-3.5 right-3.5 left-3.5 z-10 flex items-center justify-between gap-2">
+                    <span class="px-3 py-1 rounded-full bg-slate-950/75 backdrop-blur-md text-white border border-white/15 text-[11px] font-extrabold shadow-lg">${escapeHtml(gradeName)}</span>
+                    ${unlocked
+                      ? `<span class="px-3 py-1 rounded-full bg-emerald-500 text-white text-[11px] font-black shadow-lg"><i class="fa-solid fa-unlock ml-1"></i> مفتوح لك</span>`
+                      : `<span class="px-3.5 py-1 rounded-full btn-primary text-xs font-black shadow-lg">${Number(c.price) === 0 ? 'مجاني' : Number(c.price) + ' ج.م'}</span>`}
+                  </div>
+
+                  <!-- Center Hover Action Pill -->
+                  <div class="course-cover-overlay absolute inset-0 z-10 flex items-center justify-center p-4 bg-slate-950/35 backdrop-blur-[2px]">
+                    <span class="px-5 py-2.5 rounded-2xl btn-primary text-xs sm:text-sm font-black flex items-center gap-2 shadow-2xl">
+                      <i class="fa-solid ${unlocked ? 'fa-circle-play' : 'fa-sparkles'}"></i>
+                      <span>${unlocked ? 'ادخل وابدأ المذاكرة' : 'استكشف محتوى الكورس'}</span>
+                    </span>
+                  </div>
+
+                  <!-- Bottom Stats Overlay -->
+                  <div class="absolute bottom-3 right-3.5 left-3.5 z-10 flex items-center justify-between text-white/95 text-[11px] font-extrabold">
+                    <span class="px-2.5 py-1 rounded-xl bg-black/55 backdrop-blur-md"><i class="fa-solid fa-circle-play text-sky-400 ml-1"></i> ${lessons.length} محاضرات</span>
+                    <span class="px-2.5 py-1 rounded-xl bg-black/55 backdrop-blur-md"><i class="fa-solid fa-file-pen text-amber-400 ml-1"></i> ${exams.length} امتحانات</span>
+                  </div>
                 </div>
-                <h3 class="text-base sm:text-lg font-black leading-snug mb-2">${escapeHtml(c.title)}</h3>
-                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">${escapeHtml(c.description)}</p>
-                <div class="flex items-center gap-3 text-xs font-bold text-slate-500">
-                  <span><i class="fa-solid fa-circle-play text-theme ml-1"></i> ${lessons.length} محاضرات</span>
-                  <span><i class="fa-solid fa-file-pen text-amber-500 ml-1"></i> ${exams.length} امتحانات</span>
+
+                <!-- Course Info -->
+                <div class="p-5 pb-3">
+                  <h3 class="text-base sm:text-lg font-black leading-snug mb-2 group-hover:text-theme transition-colors">${escapeHtml(c.title)}</h3>
+                  <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-2">${escapeHtml(c.description)}</p>
                 </div>
               </div>
+
+              <!-- Action Buttons -->
               <div class="px-5 pb-5 pt-3 border-t border-slate-200/60 dark:border-slate-800 flex flex-wrap items-center gap-2">
                 ${unlocked
                   ? `<button type="button" onclick="attemptEnterCourse('${escapeHtml(c.id)}')" class="btn-primary w-full py-3 rounded-2xl text-xs font-extrabold"><i class="fa-solid fa-play ml-1"></i> دخول المحاضرات والامتحانات</button>`
-                  : `${freeLesson ? `<button type="button" onclick="openCoursePlayer('${escapeHtml(c.id)}', '${escapeHtml(freeLesson.id)}')" class="py-2.5 px-3 rounded-2xl liquid-glass text-xs font-extrabold">حصة مجانية</button>` : ''}
-                     <button type="button" onclick="purchaseCourseWithWallet('${escapeHtml(c.id)}')" class="flex-1 py-2.5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold"><i class="fa-solid fa-wallet ml-1"></i> شراء بالمحفظة</button>
+                  : `${freeLesson ? `<button type="button" onclick="openCoursePlayer('${escapeHtml(c.id)}', '${escapeHtml(freeLesson.id)}')" class="py-2.5 px-3 rounded-2xl liquid-glass text-xs font-extrabold hover:border-theme transition">حصة مجانية</button>` : ''}
+                     <button type="button" onclick="purchaseCourseWithWallet('${escapeHtml(c.id)}')" class="flex-1 py-2.5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition"><i class="fa-solid fa-wallet ml-1"></i> شراء بالمحفظة</button>
                      <button type="button" onclick="openRedeemModal()" class="py-2.5 px-3 rounded-2xl btn-primary text-xs font-extrabold"><i class="fa-solid fa-ticket ml-1"></i> كود</button>`}
               </div>
             </div>`;
@@ -2026,25 +2127,47 @@
                   <select id="newCourseGrade" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">${appState.grades.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`).join('')}</select>
                   <input id="newCoursePrice" type="number" min="0" value="150" required placeholder="السعر *" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
                   <input id="newCoursePdf" type="url" placeholder="رابط ملزمة PDF" class="sm:col-span-2 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                  
+                  <!-- 1080x1080 Course Cover Upload -->
+                  <div class="sm:col-span-3 p-3.5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-dashed border-theme/60 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <img id="newCourseCoverPreview" src="${createDefaultCourseCover('معاينة الغلاف', '1080 × 1080')}" class="w-16 h-16 rounded-2xl object-cover border border-theme/40 shadow-sm shrink-0" />
+                      <div>
+                        <div class="text-xs font-black text-theme"><i class="fa-solid fa-image ml-1"></i> صورة غلاف الكورس المربعة (1080 × 1080)</div>
+                        <div class="text-[11px] text-slate-500 font-bold mt-0.5">يتم قص وضبط الصورة تلقائياً بمقاس 1080×1080 مع تأثير حركي عند وقوف الطالب عليها</div>
+                      </div>
+                    </div>
+                    <label class="btn-primary px-4 py-2 rounded-xl text-xs font-extrabold cursor-pointer shrink-0">
+                      <i class="fa-solid fa-upload ml-1"></i> اختيار صورة الغلاف
+                      <input type="file" accept="image/*" onchange="handleNewCourseCoverUpload(event)" class="hidden" />
+                    </label>
+                  </div>
+
                   <textarea id="newCourseDesc" rows="2" required placeholder="وصف الكورس *" class="sm:col-span-3 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold"></textarea>
                   <button type="submit" class="sm:col-span-3 btn-primary py-3 rounded-2xl text-xs font-extrabold">حفظ الكورس</button>
                 </form>
               </div>
-              ${appState.courses.map(c => `
+              ${appState.courses.map(c => {
+                const gradeName = getGradeLabel(c.gradeId);
+                const cCover = sanitizeUrl(c.coverImage) !== '#' ? sanitizeUrl(c.coverImage) : createDefaultCourseCover(c.title, gradeName);
+                return `
                 <div class="liquid-glass rounded-3xl p-5 space-y-4">
-                  <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-800">
-                    <div>
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full bg-theme-soft text-theme text-[11px] font-extrabold">${escapeHtml(getGradeLabel(c.gradeId))}</span>
-                        <h4 class="text-base font-black">${escapeHtml(c.title)}</h4>
-                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 text-xs font-black">${Number(c.price)} ج.م</span>
-                        ${c.published === false ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 text-[11px] font-black">مخفي</span>` : ''}
+                  <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/60 dark:border-slate-800">
+                    <div class="flex items-center gap-3.5">
+                      <img src="${cCover}" alt="${escapeHtml(c.title)}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border border-theme/30 shadow-md shrink-0" />
+                      <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="px-2.5 py-0.5 rounded-full bg-theme-soft text-theme text-[11px] font-extrabold">${escapeHtml(gradeName)}</span>
+                          <h4 class="text-base font-black">${escapeHtml(c.title)}</h4>
+                          <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 text-xs font-black">${Number(c.price)} ج.م</span>
+                          ${c.published === false ? `<span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 text-[11px] font-black">مخفي</span>` : ''}
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">${escapeHtml(c.description || '')}</p>
                       </div>
-                      <p class="text-xs text-slate-500 mt-1">${escapeHtml(c.description || '')}</p>
                     </div>
                     <div class="flex items-center gap-2">
                       <button type="button" onclick="openEditCourseModal('${escapeHtml(c.id)}')" class="btn-primary px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5">
-                        <i class="fa-solid fa-pen-to-square"></i><span>تعديل الكورس</span>
+                        <i class="fa-solid fa-pen-to-square"></i><span>تعديل الكورس والغلاف</span>
                       </button>
                       <button type="button" onclick="adminDeleteCourseById('${escapeHtml(c.id)}')" class="px-3 py-1.5 rounded-xl bg-rose-500/15 text-rose-500 text-xs font-extrabold">حذف الكورس</button>
                     </div>
@@ -2068,7 +2191,8 @@
                       <div class="sm:col-span-2 flex items-center justify-between"><label class="text-[11px] font-bold"><input name="lFree" type="checkbox" /> مجاني</label><button type="submit" class="btn-primary px-3 py-2 rounded-xl text-xs font-extrabold">+</button></div>
                     </form>
                   </div>
-                </div>`).join('')}
+                </div>`;
+              }).join('')}
             </div>`;
         }
         else if (id === 'teachers') {
@@ -2150,13 +2274,53 @@
 
       window._setCardStudent = function (val) { selectedCardStudentId = val; renderAdminSection('center_attendance'); };
 
-      // 16. Admin Actions (Including Edit Course, Edit Lesson & Edit Student)
+      // 16. Admin Actions (Including Course Cover 1080x1080, Edit Course, Edit Lesson & Edit Student)
+      window.handleNewCourseCoverUpload = function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        cropAndResizeSquare1080(file, (b64) => {
+          newCourseCoverBase64 = b64;
+          const prev = document.getElementById('newCourseCoverPreview');
+          if (prev) prev.src = b64;
+          showToast('تم تجهيز غلاف الكورس بمقاس 1080×1080 بنجاح!', 'success');
+        });
+      };
+
+      window.handleEditCourseCoverUpload = function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        cropAndResizeSquare1080(file, (b64) => {
+          editCourseCoverBase64 = b64;
+          const prev = document.getElementById('editCourseCoverPreview');
+          if (prev) prev.src = b64;
+          showToast('تم تحديث صورة الغلاف (1080×1080)! اضغط حفظ التعديلات.', 'success');
+        });
+      };
+
       window.openEditCourseModal = function (courseId) {
         const course = appState.courses.find(c => c.id === courseId);
         if (!course) return;
+        editCourseCoverBase64 = '';
+        const gradeName = getGradeLabel(course.gradeId);
+        const currentCover = sanitizeUrl(course.coverImage) !== '#' ? sanitizeUrl(course.coverImage) : createDefaultCourseCover(course.title, gradeName);
         document.getElementById('adminEditModalTitle').textContent = `تعديل الكورس: ${course.title}`;
         document.getElementById('adminEditModalBody').innerHTML = `
           <form onsubmit="saveEditedCourse(event, '${escapeHtml(course.id)}')" class="space-y-3">
+            <!-- Course Cover 1080x1080 Editor -->
+            <div class="p-3.5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-dashed border-theme/60 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <img id="editCourseCoverPreview" src="${currentCover}" class="w-16 h-16 rounded-2xl object-cover border border-theme/40 shadow-sm shrink-0" />
+                <div>
+                  <div class="text-xs font-black text-theme">غلاف الكورس (1080 × 1080)</div>
+                  <div class="text-[11px] text-slate-500 font-bold">ارفع صورة جديدة لتغيير الغلاف المربع</div>
+                </div>
+              </div>
+              <label class="btn-primary px-3.5 py-2 rounded-xl text-xs font-extrabold cursor-pointer shrink-0">
+                <i class="fa-solid fa-camera ml-1"></i> تغيير الصورة
+                <input type="file" accept="image/*" onchange="handleEditCourseCoverUpload(event)" class="hidden" />
+              </label>
+            </div>
+
             <div>
               <label class="block text-xs font-extrabold mb-1">عنوان الكورس *</label>
               <input id="editCourseTitle" type="text" required value="${escapeHtml(course.title)}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
@@ -2203,10 +2367,14 @@
         course.pdfUrl = document.getElementById('editCoursePdf').value.trim();
         course.description = document.getElementById('editCourseDesc').value.trim();
         course.published = document.getElementById('editCoursePublished').checked;
+        if (editCourseCoverBase64) {
+          course.coverImage = editCourseCoverBase64;
+          editCourseCoverBase64 = '';
+        }
         await savePublicNode();
         closeModal('adminEditModal');
         renderAdminSection('courses');
-        showToast('تم حفظ تعديلات الكورس بنجاح!', 'success');
+        showToast('تم حفظ تعديلات الكورس وغلافه بنجاح!', 'success');
       };
 
       window.openEditLessonModal = function (courseId, lessonId) {
@@ -2434,13 +2602,17 @@
 
       window.adminAddCourse = async function (e) {
         e.preventDefault();
+        const title = document.getElementById('newCourseTitle').value.trim();
+        const gradeId = document.getElementById('newCourseGrade').value;
+        const coverImage = newCourseCoverBase64 || createDefaultCourseCover(title, getGradeLabel(gradeId));
         appState.courses.push({
-          id: 'c_' + Date.now(), title: document.getElementById('newCourseTitle').value.trim(), gradeId: document.getElementById('newCourseGrade').value,
+          id: 'c_' + Date.now(), title, gradeId, coverImage,
           price: Number(document.getElementById('newCoursePrice').value), published: true, pdfUrl: document.getElementById('newCoursePdf').value.trim(),
           description: document.getElementById('newCourseDesc').value.trim(), lessons: [], exams: []
         });
+        newCourseCoverBase64 = '';
         await savePublicNode();
-        showToast('تم إضافة الكورس!', 'success');
+        showToast('تم إضافة الكورس بصورة الغلاف (1080×1080)!', 'success');
       };
       window.adminDeleteCourseById = async function (courseId) {
         appState.courses = appState.courses.filter(c => c.id !== courseId);
