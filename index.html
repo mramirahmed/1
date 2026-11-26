@@ -291,7 +291,7 @@
     </div>
   </div>
 
-  <!-- Admin Edit Modal (Courses, Lessons & Students) -->
+  <!-- Admin Edit Modal (Grades, Courses, Lessons & Students) -->
   <div id="adminEditModal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-slate-950/75 backdrop-blur-md p-3 sm:p-5 overflow-y-auto">
     <div class="liquid-glass rounded-[32px] max-w-xl w-full p-5 sm:p-7 relative my-auto max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800 pb-4 mb-4">
@@ -466,29 +466,24 @@
       <div id="teachersCarouselDots" class="flex items-center justify-center gap-2 mt-4"></div>
     </section>
 
-    <!-- Grades Section -->
+    <!-- Grades & Stages Section (Dynamic Unlimited Stages Grid) -->
     <section id="gradesSection" class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
       <div class="text-center max-w-2xl mx-auto mb-8">
-        <span class="px-3.5 py-1 rounded-full bg-theme-soft text-theme text-xs font-black">اختر صفك الدراسي</span>
-        <h2 id="gradesSectionTitle" class="text-2xl sm:text-3xl font-black mt-2">السنين الدراسية</h2>
-        <p id="gradesSectionSub" class="text-xs sm:text-sm text-slate-500 font-bold mt-1">محتوى مخصص ومصمم بدقة لكل صف من صفوف المرحلة الثانوية</p>
+        <span class="px-3.5 py-1 rounded-full bg-theme-soft text-theme text-xs font-black">اختر صفك أو مرحلتك الدراسية</span>
+        <h2 id="gradesSectionTitle" class="text-2xl sm:text-3xl font-black mt-2">السنين والمراحل الدراسية</h2>
+        <p id="gradesSectionSub" class="text-xs sm:text-sm text-slate-500 font-bold mt-1">محتوى مخصص ومصمم بدقة لكل صف ومرحلة تعليمية</p>
       </div>
-      <div id="gradesGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      <div id="gradesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
-    <!-- Courses Section -->
+    <!-- Courses Section (Dynamic Filter Buttons Based on Stages) -->
     <section id="coursesSection" class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
       <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h2 id="coursesSectionTitle" class="text-2xl sm:text-3xl font-black">أحدث الكورسات والمراجعات</h2>
           <p class="text-xs sm:text-sm text-slate-500 font-bold mt-1">اختر الكورس المناسب واشترك بالمحفظة أو بكود التفعيل الفوري</p>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <button type="button" data-filter="all" onclick="filterCourses('all')" class="course-filter-btn btn-primary px-4 py-2 rounded-2xl text-xs font-extrabold">الكل</button>
-          <button type="button" data-filter="grade1" onclick="filterCourses('grade1')" class="course-filter-btn liquid-glass px-4 py-2 rounded-2xl text-xs font-extrabold">أولى ثانوي</button>
-          <button type="button" data-filter="grade2" onclick="filterCourses('grade2')" class="course-filter-btn liquid-glass px-4 py-2 rounded-2xl text-xs font-extrabold">ثانية ثانوي</button>
-          <button type="button" data-filter="grade3" onclick="filterCourses('grade3')" class="course-filter-btn liquid-glass px-4 py-2 rounded-2xl text-xs font-extrabold">ثالثة ثانوي</button>
-        </div>
+        <div id="courseFilterButtonsContainer" class="flex flex-wrap items-center gap-2"></div>
       </div>
       <div id="coursesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
@@ -573,11 +568,8 @@
           <input id="signupPhone" type="tel" required placeholder="رقم هاتف الطالب *" class="px-3.5 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
           <input id="signupParentPhone" type="tel" required placeholder="رقم ولي الأمر *" class="px-3.5 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
         </div>
-        <select id="signupGrade" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">
-          <option value="grade1">الصف الأول الثانوي</option>
-          <option value="grade2">الصف الثاني الثانوي</option>
-          <option value="grade3" selected>الصف الثالث الثانوي</option>
-        </select>
+        <!-- Dynamic Grades Select Populated Automatically -->
+        <select id="signupGrade" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold"></select>
         <input id="signupEmail" type="email" placeholder="البريد الإلكتروني (اختياري)" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
         <div class="grid grid-cols-2 gap-2">
           <input id="signupPassword" type="password" oninput="checkPasswordMatch()" required placeholder="كلمة المرور *" class="px-3.5 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
@@ -648,10 +640,9 @@
     </div>
   </div>
 
-  <!-- Protected Video Player Modal (Upgraded Pro Control Bar Below Video + Interactive Seek Bar) -->
+  <!-- Protected Video Player Modal -->
   <div id="videoPlayerModal" class="fixed inset-0 z-[96] hidden items-center justify-center bg-slate-950/85 backdrop-blur-lg p-2.5 sm:p-5 overflow-y-auto">
     <div class="liquid-glass rounded-[32px] max-w-4xl w-full p-4 sm:p-6 relative my-auto">
-      <!-- Top Header -->
       <div class="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-200/60 dark:border-slate-800">
         <div>
           <span id="playerCourseBadge" class="px-2.5 py-0.5 rounded-full bg-theme-soft text-theme text-[11px] font-black">الصف الثالث الثانوي</span>
@@ -662,27 +653,20 @@
         </button>
       </div>
 
-      <!-- Unified Player Shell (Video Frame on Top + Sleek Control Deck Directly Below) -->
       <div id="protectedPlayerOuter" class="rounded-2xl overflow-hidden bg-slate-950 border border-slate-800/90 shadow-2xl select-none">
-        
-        <!-- 1. Protected Video Stage (Clean View Without Floating Buttons) -->
         <div id="protectedVideoStage" class="relative aspect-video w-full bg-black overflow-hidden">
           <div id="playerIframeContainer" class="w-full h-full"></div>
 
-          <!-- Click-to-Play/Pause Transparent Protection Overlay (Blocks Right-Click & Direct YouTube Copy) -->
           <div id="videoClickShield" onclick="playerCommand('togglePlay')" ondblclick="toggleProtectedFullscreen()" class="absolute inset-0 z-10 cursor-pointer flex items-center justify-center group">
-            <!-- Center Play Pulse Indicator when Paused -->
             <div id="centerPlayBadge" class="w-16 h-16 rounded-full bg-slate-950/75 border-2 border-white/25 text-white flex items-center justify-center text-2xl shadow-2xl backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
               <i id="centerPlayIcon" class="fa-solid fa-play mr-[-2px]"></i>
             </div>
           </div>
 
-          <!-- Moving Student Watermark -->
           <div class="absolute inset-0 z-10 pointer-events-none">
             <div id="studentWatermark" class="watermark-float px-3 py-1 rounded-lg bg-black/50 text-white/65 text-xs font-mono font-black border border-white/10">منصة الحوت</div>
           </div>
 
-          <!-- Anti-DevTools Blackout Shield -->
           <div id="blackoutShield" class="hidden absolute inset-0 z-30 bg-slate-950 text-white flex-col items-center justify-center p-6 text-center space-y-3">
             <i class="fa-solid fa-shield-halved text-4xl text-rose-500"></i>
             <h4 class="text-lg font-black">تم تفعيل درع الحماية!</h4>
@@ -691,10 +675,7 @@
           </div>
         </div>
 
-        <!-- 2. Dedicated Control Deck Directly Underneath the Video Frame -->
         <div id="playerControlDeck" class="bg-slate-900/95 border-t border-slate-800 px-3.5 sm:px-5 py-3 text-white space-y-2.5">
-          
-          <!-- Interactive Seek / Progress Bar + Time Display -->
           <div class="flex items-center gap-3" dir="ltr">
             <span id="playerCurrentTime" class="text-[11px] sm:text-xs font-mono font-extrabold text-sky-400 w-11 text-center shrink-0">00:00</span>
             <div class="flex-1 flex items-center relative">
@@ -707,30 +688,23 @@
             <span id="playerDurationTime" class="text-[11px] sm:text-xs font-mono font-extrabold text-slate-400 w-11 text-center shrink-0">00:00</span>
           </div>
 
-          <!-- Controls Row: Play/Pause, Skip ±10s, Volume, Speed, Quality, Fullscreen -->
           <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-            
-            <!-- Right Side (Playback & Volume) -->
             <div class="flex items-center gap-1.5 sm:gap-2">
-              <!-- Play / Pause Button -->
               <button id="playerPlayPauseBtn" type="button" onclick="playerCommand('togglePlay')" class="btn-primary px-3.5 sm:px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shrink-0">
                 <i id="playerPlayIcon" class="fa-solid fa-play"></i>
                 <span id="playerPlayLabel">تشغيل</span>
               </button>
 
-              <!-- Rewind 10s -->
               <button type="button" onclick="playerCommand('skip', -10)" title="ترجيع 10 ثواني" class="px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold flex items-center gap-1 transition">
                 <i class="fa-solid fa-rotate-right text-[11px] text-sky-400"></i>
                 <span class="hidden sm:inline">10ث</span>
               </button>
 
-              <!-- Forward 10s -->
               <button type="button" onclick="playerCommand('skip', 10)" title="تقديم 10 ثواني" class="px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold flex items-center gap-1 transition">
                 <span class="hidden sm:inline">10ث</span>
                 <i class="fa-solid fa-rotate-left text-[11px] text-sky-400"></i>
               </button>
 
-              <!-- Sound / Mute + Volume Slider -->
               <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white/10 border border-white/5">
                 <button type="button" onclick="playerCommand('toggleMute')" title="كتم / تشغيل الصوت" class="text-xs sm:text-sm text-sky-400 hover:text-white transition w-5 text-center">
                   <i id="playerVolIcon" class="fa-solid fa-volume-high"></i>
@@ -742,9 +716,7 @@
               </div>
             </div>
 
-            <!-- Left Side (Speed, Quality, Fullscreen) -->
             <div class="flex items-center gap-1.5 sm:gap-2">
-              <!-- Speed Control -->
               <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/10 border border-white/5" title="سرعة التشغيل">
                 <i class="fa-solid fa-gauge-high text-[11px] text-amber-400"></i>
                 <select id="playerSpeedSelect" onchange="playerCommand('speed', this.value)" class="bg-transparent text-white text-xs font-extrabold outline-none cursor-pointer">
@@ -757,7 +729,6 @@
                 </select>
               </div>
 
-              <!-- Quality Control -->
               <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/10 border border-white/5" title="جودة الفيديو">
                 <i class="fa-solid fa-sliders text-[11px] text-emerald-400"></i>
                 <select id="playerQualitySelect" onchange="playerCommand('quality', this.value)" class="bg-transparent text-white text-xs font-extrabold outline-none cursor-pointer">
@@ -769,18 +740,15 @@
                 </select>
               </div>
 
-              <!-- Fullscreen Button -->
               <button type="button" onclick="toggleProtectedFullscreen()" title="ملء الشاشة" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold flex items-center gap-1.5 transition">
                 <i id="playerFullscreenIcon" class="fa-solid fa-expand text-sky-400"></i>
                 <span class="hidden md:inline">ملء الشاشة</span>
               </button>
             </div>
-
           </div>
         </div>
       </div>
 
-      <!-- Lessons Playlist & Attachments -->
       <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="md:col-span-2">
           <div id="playerLessonsList" class="space-y-2 max-h-48 overflow-y-auto"></div>
@@ -1054,19 +1022,23 @@
         showToast(soundMuted ? 'تم كتم صوت النقرات' : 'تم تفعيل صوت النقرات', 'info');
       };
 
-      // 6. Default SVG Artwork & State
-      function createGradeSvgCover(title, subtitle, c1, c2, emblem) {
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient></defs><rect width="1080" height="1080" fill="url(#g)"/><rect x="70" y="70" width="940" height="940" rx="64" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="4"/><text x="540" y="340" text-anchor="middle" font-size="150" fill="#ffffff">${emblem}</text><text x="540" y="540" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="900" font-size="76" fill="#ffffff">${title}</text><text x="540" y="630" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="700" font-size="42" fill="rgba(255,255,255,0.88)">${subtitle}</text><text x="540" y="784" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="800" font-size="34" fill="#ffffff">منصة الحوت • مستر أمير أحمد</text></svg>`;
+      // 6. Default SVG Artwork & State (6 Default Stages + Unlimited Add/Edit)
+      function createGradeSvgCover(title, subtitle, c1 = '#0284c7', c2 = '#1e3a8a', emblem = '🎓') {
+        const safeT = String(title || 'مرحلة دراسية').slice(0, 26);
+        const safeS = String(subtitle || 'منصة الحوت التعليمية').slice(0, 32);
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient></defs><rect width="1080" height="1080" fill="url(#g)"/><rect x="70" y="70" width="940" height="940" rx="64" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="4"/><text x="540" y="340" text-anchor="middle" font-size="150" fill="#ffffff">${emblem}</text><text x="540" y="540" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="900" font-size="72" fill="#ffffff">${safeT}</text><text x="540" y="630" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="700" font-size="40" fill="rgba(255,255,255,0.88)">${safeS}</text><text x="540" y="784" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="800" font-size="34" fill="#ffffff">منصة الحوت • مستر أمير أحمد</text></svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
       }
+
       function createDefaultCourseCover(title = 'كورس التاريخ', gradeLabel = 'منصة الحوت') {
         const safeT = String(title || 'كورس التاريخ').slice(0, 26);
         const safeG = String(gradeLabel || 'منصة الحوت').slice(0, 28);
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080"><defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0284c7"/><stop offset="55%" stop-color="#0f172a"/><stop offset="100%" stop-color="#0369a1"/></linearGradient></defs><rect width="1080" height="1080" fill="url(#cg)"/><circle cx="880" cy="200" r="240" fill="rgba(56,189,248,0.14)"/><circle cx="190" cy="890" r="260" fill="rgba(2,132,199,0.18)"/><rect x="65" y="65" width="950" height="950" rx="68" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="4"/><text x="540" y="345" text-anchor="middle" font-size="145" fill="#ffffff">👑</text><text x="540" y="530" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="900" font-size="64" fill="#ffffff">${safeT}</text><text x="540" y="625" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="800" font-size="40" fill="#38bdf8">${safeG}</text><text x="540" y="845" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="800" font-size="34" fill="rgba(255,255,255,0.85)">منصة الحوت • مستر أمير أحمد</text></svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
       }
+
       function createDefaultTeacherPortrait(label = 'مستر أمير أحمد') {
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0284c7"/><stop offset="100%" stop-color="#0f172a"/></linearGradient></defs><rect width="800" height="800" fill="url(#bg)"/><circle cx="400" cy="310" r="145" fill="rgba(255,255,255,0.14)"/><circle cx="400" cy="285" r="82" fill="#f8fafc"/><path d="M245 565 C245 445, 555 445, 555 565 Z" fill="#f8fafc"/><text x="400" y="690" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="900" font-size="38" fill="#38bdf8">${label}</text></svg>`;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="1" y2="1"><stop offset="0%" stop-color="#0284c7"/><stop offset="100%" stop-color="#0f172a"/></linearGradient></defs><rect width="800" height="800" fill="url(#bg)"/><circle cx="400" cy="310" r="145" fill="rgba(255,255,255,0.14)"/><circle cx="400" cy="285" r="82" fill="#f8fafc"/><path d="M245 565 C245 445, 555 445, 555 565 Z" fill="#f8fafc"/><text x="400" y="690" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="900" font-size="38" fill="#38bdf8">${label}</text></svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
       }
 
@@ -1103,7 +1075,7 @@
           heroDescription: 'شرح مبسط بأسلوب قصصي شيّق، خرائط ذهنية تفاعلية، بنوك أسئلة بنظام الثانوية العامة الحديث، ومساعد ذكاء اصطناعي يختبرك ويجيب عن أسئلتك على مدار الساعة.',
           heroCtaButton: 'ابدأ المذاكرة الآن', teacherCardBadge: 'معد المادة بجريدة الجمهورية', teacherCardRole: 'خبير تدريس التاريخ للمرحلة الثانوية',
           stat1Value: '+15,000', stat1Label: 'طالب متفوق', stat2Value: '+45', stat2Label: 'محاضرة ومراجعة', stat3Value: '24/7', stat3Label: 'دعم ومساعد ذكي',
-          gradesSectionTitle: 'السنين الدراسية', gradesSectionSubtitle: 'محتوى مخصص ومصمم بدقة لكل صف من صفوف المرحلة الثانوية',
+          gradesSectionTitle: 'السنين والمراحل الدراسية', gradesSectionSubtitle: 'محتوى مخصص ومصمم بدقة لكل صف ومرحلة تعليمية',
           coursesSectionTitle: 'أحدث الكورسات والمراجعات', featuresSectionTitle: 'مميزات منصة حوت التاريخ',
           footerTitle: 'منصة الحوت التعليمية — مستر أمير أحمد', footerCopyright: 'معد المادة بجريدة الجمهورية • جميع الحقوق محفوظة © 2026',
           showAnnouncementBar: true, showGradesSection: true, showFeaturesSection: true, showPromoBanners: true, showFloatingWhatsapp: true,
@@ -1111,6 +1083,9 @@
         },
         adminProfile: { name: 'مستر أمير أحمد', phone: '01140079005' },
         grades: [
+          { id: 'grade_prep1', name: 'الصف الأول الإعدادي', description: 'تأسيس الدراسات الاجتماعية والتاريخ بأسلوب مبسط وممتع', image: createGradeSvgCover('أولى إعدادي', 'تأسيس التاريخ والحضارات', '#0891b2', '#164e63', '🧭') },
+          { id: 'grade_prep2', name: 'الصف الثاني الإعدادي', description: 'تاريخ الوطن العربي والإسلامي بخرائط ذهنية شيقة', image: createGradeSvgCover('ثانية إعدادي', 'تاريخ الوطن العربي', '#7c3aed', '#4c1d95', '📜') },
+          { id: 'grade_prep3', name: 'الصف الثالث الإعدادي', description: 'الشهادة الإعدادية — تاريخ مصر الحديث ومراجعات نهائية', image: createGradeSvgCover('ثالثة إعدادي', 'الشهادة الإعدادية', '#db2777', '#831843', '🏅') },
           { id: 'grade1', name: 'الصف الأول الثانوي', description: 'تاريخ مصر والحضارات القديمة بأسلوب شيق وخرائط ذهنية', image: createGradeSvgCover('الصف الأول الثانوي', 'حضارة مصر والعالم القديم', '#0284c7', '#1e3a8a', '🏛️') },
           { id: 'grade2', name: 'الصف الثاني الثانوي', description: 'تاريخ الحضارة الإسلامية والفتوحات والدول المستقلة', image: createGradeSvgCover('الصف الثاني الثانوي', 'الحضارة الإسلامية والفتوحات', '#059669', '#064e3b', '🕌') },
           { id: 'grade3', name: 'الصف الثالث الثانوي', description: 'تاريخ مصر والعرب الحديث والمعاصر — مراجعات الجمهورية', image: createGradeSvgCover('الصف الثالث الثانوي', 'تاريخ مصر والعرب الحديث', '#b45309', '#78350f', '👑') }
@@ -1131,6 +1106,8 @@
       let studentGradeFilter = 'all';
       let newCourseCoverBase64 = '';
       let editCourseCoverBase64 = '';
+      let newGradeCoverBase64 = '';
+      let editGradeCoverBase64 = '';
 
       function toCleanArray(val) {
         if (!val) return [];
@@ -1241,7 +1218,9 @@
           }
           applyBrandingAndTheme();
           renderPublicSections();
-          if (isAuthorizedAdmin() && currentAdminSection === 'courses') renderAdminSection('courses');
+          if (isAuthorizedAdmin() && (currentAdminSection === 'courses' || currentAdminSection === 'grades')) {
+            renderAdminSection(currentAdminSection);
+          }
           updateCloudBadge(true);
         });
 
@@ -1433,7 +1412,19 @@
       }
 
       // 9. Authentication & Student Registration
-      window.openAuthModal = function (tab = 'login') { switchAuthTab(tab); openModal('authModal'); };
+      window.openAuthModal = function (tab = 'login') {
+        populateSignupGradesSelect();
+        switchAuthTab(tab);
+        openModal('authModal');
+      };
+
+      function populateSignupGradesSelect() {
+        const sel = document.getElementById('signupGrade');
+        if (!sel) return;
+        const currentVal = sel.value;
+        sel.innerHTML = appState.grades.map((g, idx) => `<option value="${escapeHtml(g.id)}" ${currentVal === g.id || (!currentVal && idx === appState.grades.length - 1) ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('');
+      }
+
       window.switchAuthTab = function (tab) {
         const isLogin = tab === 'login';
         document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
@@ -1620,7 +1611,7 @@
       };
 
       // 10. Storefront Rendering
-      function getGradeLabel(gradeId) { const g = appState.grades.find(item => item.id === gradeId); return g ? g.name : 'المرحلة الثانوية'; }
+      function getGradeLabel(gradeId) { const g = appState.grades.find(item => item.id === gradeId); return g ? g.name : 'مرحلة دراسية'; }
       function isCourseUnlocked(courseId) {
         if (isAuthorizedAdmin()) return true;
         const course = appState.courses.find(c => c.id === courseId);
@@ -1654,15 +1645,44 @@
       }
 
       function renderPublicSections() {
+        populateSignupGradesSelect();
         renderTeachersCarousel();
-        document.getElementById('gradesGrid').innerHTML = appState.grades.map(g => `
-          <div onclick="selectGradeAndScroll('${escapeHtml(g.id)}')" class="cursor-pointer liquid-glass liquid-card-hover rounded-[32px] p-4 group">
-            <div class="aspect-square w-full rounded-[24px] overflow-hidden relative mb-4 bg-slate-900"><img src="${sanitizeUrl(g.image)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" /></div>
-            <div class="px-2 pb-2 flex items-center justify-between gap-2">
-              <div><h3 class="text-lg sm:text-xl font-black group-hover:text-theme transition">${escapeHtml(g.name)}</h3><p class="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-1">${escapeHtml(g.description)}</p></div>
-              <div class="w-10 h-10 rounded-2xl bg-theme-soft text-theme flex items-center justify-center shrink-0"><i class="fa-solid fa-arrow-left"></i></div>
-            </div>
-          </div>`).join('');
+
+        // Render Dynamic Stages / Grades Grid
+        document.getElementById('gradesGrid').innerHTML = appState.grades.map(g => {
+          const gradeImg = sanitizeUrl(g.image) !== '#' ? sanitizeUrl(g.image) : createGradeSvgCover(g.name, g.description);
+          const coursesCount = appState.courses.filter(c => c.gradeId === g.id && c.published !== false).length;
+          return `
+            <div onclick="selectGradeAndScroll('${escapeHtml(g.id)}')" class="cursor-pointer liquid-glass liquid-card-hover rounded-[32px] p-4 group">
+              <div class="aspect-square w-full rounded-[24px] overflow-hidden relative mb-4 bg-slate-900">
+                <img src="${gradeImg}" alt="${escapeHtml(g.name)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                <span class="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-950/75 backdrop-blur-md text-white text-[11px] font-black border border-white/15">
+                  ${coursesCount} كورس متاح
+                </span>
+              </div>
+              <div class="px-2 pb-2 flex items-center justify-between gap-2">
+                <div>
+                  <h3 class="text-lg sm:text-xl font-black group-hover:text-theme transition">${escapeHtml(g.name)}</h3>
+                  <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-1">${escapeHtml(g.description || '')}</p>
+                </div>
+                <div class="w-10 h-10 rounded-2xl bg-theme-soft text-theme flex items-center justify-center shrink-0"><i class="fa-solid fa-arrow-left"></i></div>
+              </div>
+            </div>`;
+        }).join('');
+
+        // Render Dynamic Course Filter Buttons for ALL Stages
+        const filterWrap = document.getElementById('courseFilterButtonsContainer');
+        if (filterWrap) {
+          if (activeCourseFilter !== 'all' && !appState.grades.some(g => g.id === activeCourseFilter)) {
+            activeCourseFilter = 'all';
+          }
+          filterWrap.innerHTML = `
+            <button type="button" data-filter="all" onclick="filterCourses('all')" class="course-filter-btn ${activeCourseFilter === 'all' ? 'btn-primary' : 'liquid-glass'} px-4 py-2 rounded-2xl text-xs font-extrabold">الكل</button>
+            ${appState.grades.map(g => `
+              <button type="button" data-filter="${escapeHtml(g.id)}" onclick="filterCourses('${escapeHtml(g.id)}')" class="course-filter-btn ${activeCourseFilter === g.id ? 'btn-primary' : 'liquid-glass'} px-4 py-2 rounded-2xl text-xs font-extrabold">${escapeHtml(g.name)}</button>
+            `).join('')}
+          `;
+        }
 
         const featuresList = (appState.homeUI && Array.isArray(appState.homeUI.features)) ? appState.homeUI.features : DEFAULT_FEATURES;
         document.getElementById('featuresGrid').innerHTML = featuresList.map(f => `
@@ -1684,13 +1704,11 @@
           return `
             <div class="course-card-interactive liquid-glass liquid-card-hover rounded-[30px] overflow-hidden flex flex-col justify-between group border border-white/40 dark:border-slate-800">
               <div>
-                <!-- Square 1080x1080 Course Cover with Interactive Hover Animation -->
                 <div onclick="${unlocked ? `attemptEnterCourse('${escapeHtml(c.id)}')` : (freeLesson ? `openCoursePlayer('${escapeHtml(c.id)}', '${escapeHtml(freeLesson.id)}')` : `purchaseCourseWithWallet('${escapeHtml(c.id)}')`)}" class="course-cover-wrapper bg-slate-900 cursor-pointer">
                   <img src="${coverUrl}" alt="${escapeHtml(c.title)}" loading="lazy" class="course-cover-img" />
                   <div class="course-cover-sheen"></div>
                   <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-300"></div>
 
-                  <!-- Top Floating Badges -->
                   <div class="absolute top-3.5 right-3.5 left-3.5 z-10 flex items-center justify-between gap-2">
                     <span class="px-3 py-1 rounded-full bg-slate-950/75 backdrop-blur-md text-white border border-white/15 text-[11px] font-extrabold shadow-lg">${escapeHtml(gradeName)}</span>
                     ${unlocked
@@ -1698,7 +1716,6 @@
                       : `<span class="px-3.5 py-1 rounded-full btn-primary text-xs font-black shadow-lg">${Number(c.price) === 0 ? 'مجاني' : Number(c.price) + ' ج.م'}</span>`}
                   </div>
 
-                  <!-- Center Hover Action Pill -->
                   <div class="course-cover-overlay absolute inset-0 z-10 flex items-center justify-center p-4 bg-slate-950/35 backdrop-blur-[2px]">
                     <span class="px-5 py-2.5 rounded-2xl btn-primary text-xs sm:text-sm font-black flex items-center gap-2 shadow-2xl">
                       <i class="fa-solid ${unlocked ? 'fa-circle-play' : 'fa-sparkles'}"></i>
@@ -1706,21 +1723,18 @@
                     </span>
                   </div>
 
-                  <!-- Bottom Stats Overlay -->
                   <div class="absolute bottom-3 right-3.5 left-3.5 z-10 flex items-center justify-between text-white/95 text-[11px] font-extrabold">
                     <span class="px-2.5 py-1 rounded-xl bg-black/55 backdrop-blur-md"><i class="fa-solid fa-circle-play text-sky-400 ml-1"></i> ${lessons.length} محاضرات</span>
                     <span class="px-2.5 py-1 rounded-xl bg-black/55 backdrop-blur-md"><i class="fa-solid fa-file-pen text-amber-400 ml-1"></i> ${exams.length} امتحانات</span>
                   </div>
                 </div>
 
-                <!-- Course Info -->
                 <div class="p-5 pb-3">
                   <h3 class="text-base sm:text-lg font-black leading-snug mb-2 group-hover:text-theme transition-colors">${escapeHtml(c.title)}</h3>
                   <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-2">${escapeHtml(c.description)}</p>
                 </div>
               </div>
 
-              <!-- Action Buttons -->
               <div class="px-5 pb-5 pt-3 border-t border-slate-200/60 dark:border-slate-800 flex flex-wrap items-center gap-2">
                 ${unlocked
                   ? `<button type="button" onclick="attemptEnterCourse('${escapeHtml(c.id)}')" class="btn-primary w-full py-3 rounded-2xl text-xs font-extrabold"><i class="fa-solid fa-play ml-1"></i> دخول المحاضرات والامتحانات</button>`
@@ -1735,10 +1749,6 @@
       window.selectGradeAndScroll = function (gradeId) { filterCourses(gradeId); document.getElementById('coursesSection').scrollIntoView({ behavior: 'smooth' }); };
       window.filterCourses = function (gradeId) {
         activeCourseFilter = gradeId;
-        document.querySelectorAll('.course-filter-btn').forEach(btn => {
-          btn.classList.toggle('btn-primary', btn.dataset.filter === gradeId);
-          btn.classList.toggle('liquid-glass', btn.dataset.filter !== gradeId);
-        });
         renderPublicSections();
       };
 
@@ -1977,10 +1987,10 @@
         return `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" class="rounded-xl bg-white p-1 border border-slate-300 mx-auto">${rects}</svg>`;
       }
 
-      // 13. Protected Video Player Engine (Interactive Progress Bar + External Control Deck)
+      // 13. Protected Video Player Engine
       let activePlayerCourse = null;
       let playerState = {
-        type: 'youtube', // 'youtube' | 'drive' | 'direct'
+        type: 'youtube',
         isPlaying: false,
         isMuted: false,
         volume: 100,
@@ -2032,7 +2042,6 @@
         bar.style.background = `linear-gradient(to right, ${primaryColor} ${pct}%, rgba(255, 255, 255, 0.18) ${pct}%)`;
       }
 
-      // Listen to YouTube IFrame API postMessage telemetry for real-time progress & duration
       window.addEventListener('message', function (event) {
         if (!event.data || typeof event.data !== 'string') return;
         if (!event.origin || (!event.origin.includes('youtube.com') && !event.origin.includes('youtube-nocookie.com'))) return;
@@ -2046,7 +2055,6 @@
               playerState.duration = data.info.duration;
             }
             if (typeof data.info.playerState === 'number') {
-              // 1 = playing, 2 = paused, 0 = ended
               if (data.info.playerState === 1) syncPlayerPlayUI(true);
               else if (data.info.playerState === 2 || data.info.playerState === 0) syncPlayerPlayUI(false);
             }
@@ -2131,7 +2139,6 @@
         syncPlayerPlayUI(false);
         syncProgressBarVisuals();
 
-        // Reset speed & quality selectors UI
         const speedSel = document.getElementById('playerSpeedSelect');
         const qualSel = document.getElementById('playerQualitySelect');
         if (speedSel) speedSel.value = '1';
@@ -2161,15 +2168,12 @@
           vid.addEventListener('play', () => syncPlayerPlayUI(true));
           vid.addEventListener('pause', () => syncPlayerPlayUI(false));
         } else if (sourceInfo.type === 'drive') {
-          // For Google Drive preview, allow interaction while keeping moving watermark
           if (clickShield) clickShield.classList.add('hidden');
           container.innerHTML = `<iframe id="activeVideoIframe" src="${sourceInfo.embedUrl}" class="w-full h-full border-0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
         } else {
-          // YouTube Secured IFrame with Custom Bottom Control Deck
           if (clickShield) clickShield.classList.remove('hidden');
           container.innerHTML = `<iframe id="activeVideoIframe" src="${sourceInfo.embedUrl}" onload="window._onPlayerIframeLoad()" class="w-full h-full border-0 pointer-events-none" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
 
-          // Fallback smooth timer & telemetry pinger
           playerState.progressTimer = setInterval(() => {
             subscribeToYouTubeTelemetry();
             if (playerState.isPlaying && !playerState.isSeeking && playerState.duration > 0) {
@@ -2201,7 +2205,6 @@
 
       window._selectPlayerLesson = function (idx) { if (activePlayerCourse && activePlayerCourse.lessons[idx]) loadLessonIntoPlayer(activePlayerCourse.lessons[idx]); };
 
-      // Interactive Seek Bar Handlers
       window.onPlayerSeekInput = function (val) {
         playerState.isSeeking = true;
         if (playerState.duration > 0) {
@@ -2353,13 +2356,14 @@
         }
       };
 
-      // 15. Full RTL Admin Dashboard
+      // 15. Full RTL Admin Dashboard (Added Grades & Stages Section)
       const ADMIN_MENU_ITEMS = [
         { id: 'overview', label: 'نظرة عامة', icon: 'fa-chart-pie' },
+        { id: 'grades', label: 'الصفوف والمراحل الدراسية', icon: 'fa-layer-group' },
+        { id: 'courses', label: 'إدارة الكورسات والامتحانات', icon: 'fa-book-open' },
         { id: 'center_attendance', label: 'حضور السنتر وكارت الطالب', icon: 'fa-qrcode' },
         { id: 'payments', label: 'المدفوعات والمحفظة', icon: 'fa-wallet' },
         { id: 'users', label: 'المستخدمين والطلاب (تحكم كامل)', icon: 'fa-user-graduate' },
-        { id: 'courses', label: 'إدارة الكورسات والامتحانات', icon: 'fa-book-open' },
         { id: 'teachers', label: 'إدارة المعلمين (بالصور)', icon: 'fa-chalkboard-user' },
         { id: 'codes', label: 'أكواد الشحن والكورسات', icon: 'fa-ticket' },
         { id: 'groups', label: 'مجموعات السنتر', icon: 'fa-users-rectangle' },
@@ -2393,7 +2397,6 @@
 
       let selectedCardStudentId = '', newTeacherPhotoBase64 = '';
 
-      // Helper: Render Filtered Students List for Admin
       function getFilteredStudentsList() {
         const q = studentSearchQuery.trim().toLowerCase();
         return appState.students.filter(st => {
@@ -2482,9 +2485,86 @@
               </div>
               <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div class="liquid-glass rounded-3xl p-4 sm:p-5"><div class="text-xs font-bold text-slate-500">إجمالي الطلاب</div><div class="text-2xl sm:text-3xl font-black text-theme mt-1">${appState.students.length}</div></div>
-                <div class="liquid-glass rounded-3xl p-4 sm:p-5"><div class="text-xs font-bold text-slate-500">حضور السنتر</div><div class="text-2xl sm:text-3xl font-black text-emerald-500 mt-1">${appState.attendance.length}</div></div>
+                <div class="liquid-glass rounded-3xl p-4 sm:p-5"><div class="text-xs font-bold text-slate-500">الصفوف والمراحل</div><div class="text-2xl sm:text-3xl font-black text-amber-500 mt-1">${appState.grades.length}</div></div>
                 <div class="liquid-glass rounded-3xl p-4 sm:p-5"><div class="text-xs font-bold text-slate-500">طلبات الدفع</div><div class="text-2xl sm:text-3xl font-black text-rose-500 mt-1">${pendingPays}</div></div>
                 <div class="liquid-glass rounded-3xl p-4 sm:p-5"><div class="text-xs font-bold text-slate-500">الكورسات</div><div class="text-2xl sm:text-3xl font-black text-purple-500 mt-1">${appState.courses.length}</div></div>
+              </div>
+            </div>`;
+        }
+        else if (id === 'grades') {
+          newGradeCoverBase64 = '';
+          main.innerHTML = `
+            <div class="space-y-6">
+              <!-- Add New Stage / Grade Card -->
+              <div class="liquid-glass rounded-3xl p-5 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                  <div>
+                    <h3 class="text-base sm:text-lg font-black"><i class="fa-solid fa-plus-circle text-theme ml-1.5"></i> إنشاء صف دراسي أو مرحلة جديدة</h3>
+                    <p class="text-xs text-slate-500 font-bold mt-0.5">يمكنك إضافة عدد غير محدود من الصفوف والمراحل التعليمية (أكثر من 5 مراحل) وتخصيص صورة غلاف لكل مرحلة</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-theme-soft text-theme text-xs font-black">إجمالي المراحل الحالية: ${appState.grades.length}</span>
+                </div>
+
+                <form onsubmit="adminAddGrade(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label class="block text-xs font-extrabold mb-1">اسم الصف / المرحلة الدراسية *</label>
+                    <input id="newGradeName" type="text" required placeholder="مثال: الصف الثالث الثانوي - أزهر / جامعي / تأسيس..." class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-extrabold mb-1">وصف مختصر للمرحلة *</label>
+                    <input id="newGradeDesc" type="text" required placeholder="مثال: منهج التاريخ الكامل والمراجعات النهائية..." class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+                  </div>
+
+                  <!-- 1080x1080 Stage Cover Upload -->
+                  <div class="sm:col-span-2 p-3.5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-dashed border-theme/60 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <img id="newGradeCoverPreview" src="${createGradeSvgCover('مرحلة جديدة', '1080 × 1080', '#0284c7', '#0f172a', '🎓')}" class="w-16 h-16 rounded-2xl object-cover border border-theme/40 shadow-sm shrink-0" />
+                      <div>
+                        <div class="text-xs font-black text-theme"><i class="fa-solid fa-image ml-1"></i> صورة غلاف المرحلة المربعة (1080 × 1080)</div>
+                        <div class="text-[11px] text-slate-500 font-bold mt-0.5">ارفع صورة مخصصة لهذه المرحلة وسيتم ضبطها تلقائياً بمقاس 1080×1080</div>
+                      </div>
+                    </div>
+                    <label class="btn-primary px-4 py-2 rounded-xl text-xs font-extrabold cursor-pointer shrink-0">
+                      <i class="fa-solid fa-upload ml-1"></i> اختيار صورة المرحلة
+                      <input type="file" accept="image/*" onchange="handleNewGradeCoverUpload(event)" class="hidden" />
+                    </label>
+                  </div>
+
+                  <button type="submit" class="sm:col-span-2 btn-primary py-3 rounded-2xl text-xs sm:text-sm font-extrabold">إضافة الصف / المرحلة إلى المنصة</button>
+                </form>
+              </div>
+
+              <!-- Existing Stages / Grades Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                ${appState.grades.map((g, idx) => {
+                  const gImg = sanitizeUrl(g.image) !== '#' ? sanitizeUrl(g.image) : createGradeSvgCover(g.name, g.description);
+                  const relatedCourses = appState.courses.filter(c => c.gradeId === g.id).length;
+                  const relatedStudents = appState.students.filter(s => s.grade === g.id).length;
+                  return `
+                    <div class="liquid-glass rounded-3xl p-4 flex flex-col justify-between gap-4 border border-slate-200/60 dark:border-slate-800">
+                      <div>
+                        <div class="relative aspect-square rounded-2xl overflow-hidden bg-slate-900 mb-3">
+                          <img src="${gImg}" alt="${escapeHtml(g.name)}" class="w-full h-full object-cover" />
+                          <span class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-slate-950/75 text-white text-[10px] font-black">المرحلة #${idx + 1}</span>
+                        </div>
+                        <h4 class="text-base font-black">${escapeHtml(g.name)}</h4>
+                        <p class="text-xs text-slate-500 font-bold mt-1 line-clamp-2">${escapeHtml(g.description || '')}</p>
+                        <div class="flex items-center gap-3 mt-2.5 text-[11px] font-extrabold text-theme">
+                          <span><i class="fa-solid fa-book ml-1"></i> ${relatedCourses} كورسات</span>
+                          <span><i class="fa-solid fa-users ml-1"></i> ${relatedStudents} طلاب</span>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-2 pt-3 border-t border-slate-200/60 dark:border-slate-800">
+                        <button type="button" onclick="openEditGradeModal('${escapeHtml(g.id)}')" class="flex-1 btn-primary py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5">
+                          <i class="fa-solid fa-pen-to-square"></i><span>تعديل الاسم والصورة</span>
+                        </button>
+                        <button type="button" onclick="adminDeleteGrade('${escapeHtml(g.id)}')" title="حذف المرحلة" class="px-3 py-2.5 rounded-xl bg-rose-500/15 text-rose-500 hover:bg-rose-500 hover:text-white transition text-xs font-extrabold">
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>`;
+                }).join('')}
               </div>
             </div>`;
         }
@@ -2561,7 +2641,6 @@
         else if (id === 'users') {
           main.innerHTML = `
             <div class="space-y-4">
-              <!-- Search & Filter Bar -->
               <div class="liquid-glass rounded-3xl p-4 sm:p-5 space-y-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <h3 class="text-base font-black"><i class="fa-solid fa-magnifying-glass text-theme ml-1.5"></i> البحث السريع وإدارة الطلاب</h3>
@@ -2574,7 +2653,7 @@
                   </div>
                   <div class="sm:col-span-4 flex items-center gap-2">
                     <select onchange="handleStudentGradeFilter(this.value)" class="flex-1 px-4 py-3 rounded-2xl bg-white/90 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-extrabold">
-                      <option value="all" ${studentGradeFilter === 'all' ? 'selected' : ''}>كل الصفوف الدراسية</option>
+                      <option value="all" ${studentGradeFilter === 'all' ? 'selected' : ''}>كل الصفوف والمراحل</option>
                       ${appState.grades.map(g => `<option value="${escapeHtml(g.id)}" ${studentGradeFilter === g.id ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('')}
                     </select>
                     ${studentSearchQuery ? `<button type="button" onclick="studentSearchQuery=''; document.getElementById('adminStudentSearchInput').value=''; handleStudentSearchInput('');" class="px-3.5 py-3 rounded-2xl bg-rose-500/15 text-rose-500 text-xs font-extrabold">مسح</button>` : ''}
@@ -2582,7 +2661,6 @@
                 </div>
               </div>
 
-              <!-- Students Cards Container -->
               <div id="studentsListContainer" class="space-y-4">
                 ${renderStudentsCardsHtml()}
               </div>
@@ -2599,7 +2677,6 @@
                   <input id="newCoursePrice" type="number" min="0" value="150" required placeholder="السعر *" class="px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
                   <input id="newCoursePdf" type="url" placeholder="رابط ملزمة PDF" class="sm:col-span-2 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
                   
-                  <!-- 1080x1080 Course Cover Upload -->
                   <div class="sm:col-span-3 p-3.5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-dashed border-theme/60 flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
                       <img id="newCourseCoverPreview" src="${createDefaultCourseCover('معاينة الغلاف', '1080 × 1080')}" class="w-16 h-16 rounded-2xl object-cover border border-theme/40 shadow-sm shrink-0" />
@@ -2745,7 +2822,127 @@
 
       window._setCardStudent = function (val) { selectedCardStudentId = val; renderAdminSection('center_attendance'); };
 
-      // 16. Admin Actions (Including Course Cover 1080x1080, Edit Course, Edit Lesson & Edit Student)
+      // 16. Grades / Stages Management Actions (Unlimited Stages + Edit Name, Desc & 1080x1080 Image)
+      window.handleNewGradeCoverUpload = function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        cropAndResizeSquare1080(file, (b64) => {
+          newGradeCoverBase64 = b64;
+          const prev = document.getElementById('newGradeCoverPreview');
+          if (prev) prev.src = b64;
+          showToast('تم تجهيز صورة المرحلة بمقاس 1080×1080 بنجاح!', 'success');
+        });
+      };
+
+      window.handleEditGradeCoverUpload = function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        cropAndResizeSquare1080(file, (b64) => {
+          editGradeCoverBase64 = b64;
+          const prev = document.getElementById('editGradeCoverPreview');
+          if (prev) prev.src = b64;
+          showToast('تم تحديث صورة المرحلة! اضغط حفظ التعديلات.', 'success');
+        });
+      };
+
+      window.adminAddGrade = async function (e) {
+        e.preventDefault();
+        const name = document.getElementById('newGradeName').value.trim();
+        const description = document.getElementById('newGradeDesc').value.trim();
+        if (!name) return;
+        const palette = [
+          ['#0284c7', '#1e3a8a', '🏛️'],
+          ['#059669', '#064e3b', '🕌'],
+          ['#b45309', '#78350f', '👑'],
+          ['#7c3aed', '#4c1d95', '📜'],
+          ['#db2777', '#831843', '🏅'],
+          ['#0891b2', '#164e63', '🧭']
+        ];
+        const pick = palette[appState.grades.length % palette.length];
+        const image = newGradeCoverBase64 || createGradeSvgCover(name, description, pick[0], pick[1], pick[2]);
+        appState.grades.push({
+          id: 'grade_' + Date.now(),
+          name,
+          description,
+          image
+        });
+        newGradeCoverBase64 = '';
+        await savePublicNode();
+        renderAdminSection('grades');
+        showToast(`تم إنشاء مرحلة «${name}» وإضافتها للمنصة بنجاح!`, 'success');
+      };
+
+      window.openEditGradeModal = function (gradeId) {
+        const grade = appState.grades.find(g => g.id === gradeId);
+        if (!grade) return;
+        editGradeCoverBase64 = '';
+        const currentImg = sanitizeUrl(grade.image) !== '#' ? sanitizeUrl(grade.image) : createGradeSvgCover(grade.name, grade.description);
+        document.getElementById('adminEditModalTitle').textContent = `تعديل المرحلة: ${grade.name}`;
+        document.getElementById('adminEditModalBody').innerHTML = `
+          <form onsubmit="saveEditedGrade(event, '${escapeHtml(grade.id)}')" class="space-y-3.5">
+            <div class="p-3.5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-dashed border-theme/60 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <img id="editGradeCoverPreview" src="${currentImg}" class="w-16 h-16 rounded-2xl object-cover border border-theme/40 shadow-sm shrink-0" />
+                <div>
+                  <div class="text-xs font-black text-theme">صورة المرحلة (1080 × 1080)</div>
+                  <div class="text-[11px] text-slate-500 font-bold">ارفع صورة جديدة لتغيير غلاف هذه المرحلة</div>
+                </div>
+              </div>
+              <label class="btn-primary px-3.5 py-2 rounded-xl text-xs font-extrabold cursor-pointer shrink-0">
+                <i class="fa-solid fa-camera ml-1"></i> تغيير الصورة
+                <input type="file" accept="image/*" onchange="handleEditGradeCoverUpload(event)" class="hidden" />
+              </label>
+            </div>
+
+            <div>
+              <label class="block text-xs font-extrabold mb-1">اسم الصف / المرحلة *</label>
+              <input id="editGradeName" type="text" required value="${escapeHtml(grade.name)}" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-extrabold mb-1">وصف المرحلة *</label>
+              <textarea id="editGradeDesc" rows="2" required class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">${escapeHtml(grade.description || '')}</textarea>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal('adminEditModal')" class="px-4 py-2.5 rounded-2xl liquid-glass text-xs font-extrabold">إلغاء</button>
+              <button type="submit" class="btn-primary px-6 py-2.5 rounded-2xl text-xs font-extrabold">حفظ التعديلات</button>
+            </div>
+          </form>`;
+        openModal('adminEditModal');
+      };
+
+      window.saveEditedGrade = async function (e, gradeId) {
+        e.preventDefault();
+        const grade = appState.grades.find(g => g.id === gradeId);
+        if (!grade) return;
+        grade.name = document.getElementById('editGradeName').value.trim();
+        grade.description = document.getElementById('editGradeDesc').value.trim();
+        if (editGradeCoverBase64) {
+          grade.image = editGradeCoverBase64;
+          editGradeCoverBase64 = '';
+        }
+        await savePublicNode();
+        closeModal('adminEditModal');
+        renderAdminSection('grades');
+        showToast('تم حفظ تعديلات المرحلة وصورتها بنجاح!', 'success');
+      };
+
+      window.adminDeleteGrade = function (gradeId) {
+        if (appState.grades.length <= 1) {
+          showToast('يجب الإبقاء على مرحلة دراسية واحدة على الأقل في المنصة', 'error');
+          return;
+        }
+        const g = appState.grades.find(item => item.id === gradeId);
+        showConfirmModal('حذف مرحلة دراسية', `هل أنت متأكد من حذف مرحلة «${g ? g.name : ''}»؟`, async () => {
+          appState.grades = appState.grades.filter(item => item.id !== gradeId);
+          await savePublicNode();
+          renderAdminSection('grades');
+          showToast('تم حذف المرحلة الدراسية', 'info');
+        });
+      };
+
+      // 17. Admin Actions (Courses, Lessons, Students, etc.)
       window.handleNewCourseCoverUpload = function (e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -2777,7 +2974,6 @@
         document.getElementById('adminEditModalTitle').textContent = `تعديل الكورس: ${course.title}`;
         document.getElementById('adminEditModalBody').innerHTML = `
           <form onsubmit="saveEditedCourse(event, '${escapeHtml(course.id)}')" class="space-y-3">
-            <!-- Course Cover 1080x1080 Editor -->
             <div class="p-3.5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-dashed border-theme/60 flex items-center justify-between gap-3">
               <div class="flex items-center gap-3">
                 <img id="editCourseCoverPreview" src="${currentCover}" class="w-16 h-16 rounded-2xl object-cover border border-theme/40 shadow-sm shrink-0" />
@@ -2912,7 +3108,7 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-extrabold mb-1">الصف الدراسي *</label>
+                <label class="block text-xs font-extrabold mb-1">الصف / المرحلة الدراسية *</label>
                 <select id="editStGrade" class="w-full px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">
                   ${appState.grades.map(g => `<option value="${escapeHtml(g.id)}" ${st.grade === g.id ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('')}
                 </select>
@@ -3123,31 +3319,33 @@
       window.deleteCodeByValue = async function (codeStr) {
         const key = codeStr.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
         if (firebaseDb) await firebaseDb.ref(`alhoot_codes_v4/${key}`).remove();
+        showToast('تم حذف الكود', 'info');
       };
       window.copyTextFallback = function (text) {
-        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
-        try { document.execCommand('copy'); showToast(`تم النسخ: ${text}`, 'success'); } catch (e) {}
-        document.body.removeChild(ta);
+        if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => showToast(`تم نسخ: ${text}`, 'success'));
       };
 
       window.adminAddGroup = async function (e) {
         e.preventDefault();
-        appState.groups.push({ id: 'g_' + Date.now(), name: document.getElementById('gNewName').value.trim(), grade: document.getElementById('gNewGrade').value, days: document.getElementById('gNewDays').value.trim() });
+        appState.groups.push({ id: 'g_' + Date.now(), name: document.getElementById('gNewName').value.trim(), gradeId: document.getElementById('gNewGrade').value, days: document.getElementById('gNewDays').value.trim() });
         await savePublicNode();
-        showToast('تم إضافة المجموعة', 'success');
+        showToast('تمت إضافة المجموعة', 'success');
       };
       window.adminDeleteGroup = async function (id) {
         appState.groups = appState.groups.filter(g => g.id !== id);
         await savePublicNode();
       };
-      window.selectAdminTheme = async function (themeId, primaryHex) {
-        appState.settings.themeId = themeId; appState.settings.primaryColor = primaryHex;
+
+      window.selectAdminTheme = async function (themeId, hexColor) {
+        appState.settings.themeId = themeId;
+        appState.settings.primaryColor = hexColor;
+        applyColorTheme(hexColor, themeId);
         await savePublicNode();
-        showToast('تم تغيير السمة اللونية', 'success');
+        showToast('تم تحديث سمة المنصة', 'success');
       };
       window.handleTeacherImageUpload = function (e) {
         const file = e.target.files[0];
-        if (file) compressImageFile(file, 800, async (b64) => { appState.settings.teacherImage = b64; await savePublicNode(); showToast('تم تحديث الصورة', 'success'); });
+        if (file) compressImageFile(file, 850, async (b64) => { appState.settings.teacherImage = b64; await savePublicNode(); showToast('تم تحديث صورة المعلم!', 'success'); });
       };
       window.savePlatformSettings = async function (e) {
         e.preventDefault();
@@ -3156,19 +3354,18 @@
         appState.settings.whatsapp = document.getElementById('setPlatWa').value.trim();
         appState.settings.announcement = document.getElementById('setPlatAnn').value.trim();
         await savePublicNode();
-        showToast('تم حفظ الإعدادات', 'success');
+        showToast('تم حفظ الإعدادات بنجاح!', 'success');
       };
 
-      // 17. Bootstrap
-      window.addEventListener('DOMContentLoaded', () => {
-        if (safeGetStorage(localStorage, 'alhoot_dark_mode') === '1') {
-          document.documentElement.classList.add('dark');
-          document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400';
-        }
-        applyBrandingAndTheme();
-        renderPublicSections();
-        initSecuredFirebaseAuth();
-      });
+      // 18. Bootstrap
+      if (safeGetStorage(localStorage, 'alhoot_dark_mode') === '1') {
+        document.documentElement.classList.add('dark');
+        if (document.getElementById('themeIcon')) document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400';
+      }
+      applyBrandingAndTheme();
+      renderPublicSections();
+      updateAuthUI();
+      initSecuredFirebaseAuth();
     })();
   </script>
 </body>
